@@ -30,10 +30,10 @@ JANELA_S = 8.0                       # segundos visíveis no gráfico
 N = int(JANELA_S / 0.02)
 HIST_MIN = 30                        # minutos guardados no histórico (memória)
 HIST_N = int(HIST_MIN * 60 / 0.02)
-MAX_PONTOS_PAUSA = 20000
+MAX_PONTOS_PAUSA = 20000             # acima disso o gráfico pausado é decimado (só no desenho)
 # janela vertical mínima: sem isso o autoescala amplia o degrau de 2,45 rad/s do encoder
 # (1 pulso a cada 20 ms) até parecer uma oscilação grande
-FAIXA_MIN = {"w": 20.0, "th": 0.5}             # acima disso o gráfico pausado é decimado (só no desenho)
+FAIXA_MIN = {"w": 20.0, "th": 0.5}
 
 MODOS = [
     (0, "m0  Malha aberta (u = ref, V)"),
@@ -155,9 +155,11 @@ class Painel(tk.Tk):
 
         # Gráficos
         self.fig = Figure(figsize=(8, 6), dpi=95)
-        self.ax1 = self.fig.add_subplot(311)
-        self.ax2 = self.fig.add_subplot(312, sharex=self.ax1)
-        self.ax3 = self.fig.add_subplot(313, sharex=self.ax1)
+        # o 1º gráfico (grandeza controlada: ω no m0/m1/m3, θ no m2/m4) tem o dobro da altura
+        gs = self.fig.add_gridspec(3, 1, height_ratios=[2.2, 1, 1])
+        self.ax1 = self.fig.add_subplot(gs[0])
+        self.ax2 = self.fig.add_subplot(gs[1], sharex=self.ax1)
+        self.ax3 = self.fig.add_subplot(gs[2], sharex=self.ax1)
         self.l_r, = self.ax1.plot([], [], "k--", lw=1, label="referência")
         self.l_y, = self.ax1.plot([], [], "C0", lw=1.5, label="saída")
         self.l_u, = self.ax2.plot([], [], "C2", lw=1.2)
