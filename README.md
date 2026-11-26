@@ -146,8 +146,9 @@ t_ms     modo  ref      u       ω        θ
   323, ou **0,76 %**. A prova é o 2º gráfico: u fica praticamente constante (−8,88 V), ou seja, o
   controle não está reagindo a isso.
 * Parece grande porque o painel ajusta a escala automaticamente. No print o eixo vertical vai de
-  −324 a −321,5, uma janela de só 2,5 rad/s. Por isso o painel agora usa uma janela mínima de
-  ±20 rad/s no gráfico de velocidade e de ±0,5 rad no de posição.
+  −324 a −321,5, uma janela de só 2,5 rad/s. O painel ajusta a escala aos pontos visíveis (para
+  enxergar os detalhes do sinal), então, com a velocidade quase constante, esse degrau do sensor
+  aparece ampliado. Para ver em outra escala, pause e use a lupa ou a cruz da barra de ferramentas.
 * O tracejado (referência) também treme um pouco: é o ruído de leitura do potenciômetro, menos de
   0,5 rad/s.
 

@@ -31,9 +31,13 @@ N = int(JANELA_S / 0.02)
 HIST_MIN = 30                        # minutos guardados no histórico (memória)
 HIST_N = int(HIST_MIN * 60 / 0.02)
 MAX_PONTOS_PAUSA = 20000             # acima disso o gráfico pausado é decimado (só no desenho)
-# janela vertical mínima: sem isso o autoescala amplia o degrau de 2,45 rad/s do encoder
-# (1 pulso a cada 20 ms) até parecer uma oscilação grande
-FAIXA_MIN = {"w": 20.0, "th": 0.5}
+# a escala vertical acompanha só os pontos visíveis na janela; esta é a meia-faixa mínima,
+# só para o eixo não "colapsar" quando o sinal está constante (ex.: ω = 0 parado)
+FAIXA_MIN = {"w": 2.0, "th": 0.05}
+MARGEM = 0.08                        # folga acima e abaixo dos dados (fração da faixa)
+# alturas relativas dos 3 gráficos: o de ω sempre fica grande
+ALTURAS = {"vel": [2.2, 1, 1],       # m0, m1, m3: 1º = ω, 2º = u, 3º = θ
+           "pos": [1.6, 0.9, 1.6]}   # m2, m4:     1º = θ, 2º = u, 3º = ω
 
 MODOS = [
     (0, "m0  Malha aberta (u = ref, V)"),
@@ -156,7 +160,7 @@ class Painel(tk.Tk):
         # Gráficos
         self.fig = Figure(figsize=(8, 6), dpi=95)
         # o 1º gráfico (grandeza controlada: ω no m0/m1/m3, θ no m2/m4) tem o dobro da altura
-        gs = self.fig.add_gridspec(3, 1, height_ratios=[2.2, 1, 1])
+        self.gs = gs = self.fig.add_gridspec(3, 1, height_ratios=ALTURAS["vel"])
         self.ax1 = self.fig.add_subplot(gs[0])
         self.ax2 = self.fig.add_subplot(gs[1], sharex=self.ax1)
         self.ax3 = self.fig.add_subplot(gs[2], sharex=self.ax1)
@@ -200,6 +204,11 @@ class Painel(tk.Tk):
         else:
             self.ax1.set_ylabel("ω [rad/s]" if m else "ref [V] / ω"); self.ax3.set_ylabel("θ [rad]")
         self.ax1.set_title(MODOS[m][1], fontsize=10)
+        if hasattr(self, "gs"):
+            self.gs.set_height_ratios(ALTURAS["pos" if m in (2, 4) else "vel"])
+            for ax, g in zip((self.ax1, self.ax2, self.ax3), self.gs):
+                ax.set_position(g.get_position(self.fig))
+            self.fig.tight_layout()
 
     # ------------------------------------------------------------------ serial
     def _atualiza_portas(self):
@@ -333,8 +342,8 @@ class Painel(tk.Tk):
         y, o = (d["th"], d["w"]) if pos else (d["w"], d["th"])
         self.l_r.set_data(t, d["r"]); self.l_y.set_data(t, y)
         self.l_u.set_data(t, d["u"]); self.l_o.set_data(t, o)
-        self._escala_eixos()
         self.ax1.set_xlim(max(t[-1] - JANELA_S, t[0]), t[-1] + 0.05)
+        self._escala_eixos()
         self.ax2.set_ylim(-12.5, 12.5)
         self.canvas.draw_idle()
         e = d["r"][-1] - y[-1]
@@ -355,12 +364,23 @@ class Painel(tk.Tk):
                 self._redesenha()
 
     def _escala(self, ax, grandeza):
-        ax.relim(); ax.autoscale_view()
-        y0, y1 = ax.get_ylim()
+        """Ajusta o eixo vertical aos pontos que estão dentro da janela de tempo visível."""
+        x0, x1 = ax.get_xlim()
+        lo, hi = float("inf"), float("-inf")
+        for ln in ax.get_lines():
+            xs, ys = ln.get_xdata(), ln.get_ydata()
+            for x, y in zip(xs, ys):
+                if x0 <= x <= x1:
+                    lo = min(lo, y); hi = max(hi, y)
+        if lo > hi:
+            return
+        folga = (hi - lo) * MARGEM
+        lo, hi = lo - folga, hi + folga
         meia = FAIXA_MIN[grandeza]
-        if y1 - y0 < 2 * meia:
-            c = (y0 + y1) / 2
-            ax.set_ylim(c - meia, c + meia)
+        if hi - lo < 2 * meia:
+            c = (lo + hi) / 2
+            lo, hi = c - meia, c + meia
+        ax.set_ylim(lo, hi)
 
     def _escala_eixos(self):
         pos = self.modo in (2, 4)
@@ -379,9 +399,9 @@ class Painel(tk.Tk):
         o = [x[3] if pos else x[4] for x in h]
         self.l_r.set_data(t, [x[1] for x in h]); self.l_y.set_data(t, y)
         self.l_u.set_data(t, [x[2] for x in h]); self.l_o.set_data(t, o)
-        self._escala_eixos()
         # começa mostrando os últimos JANELA_S segundos; arraste para a esquerda para voltar
         self.ax1.set_xlim(max(t[-1] - JANELA_S, t[0]), t[-1] + 0.05)
+        self._escala_eixos()
         self.ax2.set_ylim(-12.5, 12.5)
         self.canvas.draw_idle()
         self.toolbar.push_current()        # "casinha" volta para esta vista
