@@ -41,6 +41,8 @@
  *   pc a0,am,a1,zn      calibração do potenciômetro: leitura numa ponta (a0 -> +1), no meio
  *                       físico (am -> 0), na outra ponta (a1 -> -1) e zona neutra (fração, ex. 0.03)
  *   pa                  imprime a leitura bruta do potenciômetro (0..4095), para calibrar
+ *   pm                  "o meio é aqui": a posição atual do potenciômetro passa a ser a referência 0
+ *                       (pc e pm ficam salvos na memória da placa; um upload volta aos padrões)
  *   zm <V>              compensação de zona morta (V), 0 = desliga
  *   zs <V>              compensação de atrito estático (usada com o motor parado)
  *   zr <V/s>            rampa de partida: com o motor preso, zs sobe zr V/s (até 7 V)
@@ -49,6 +51,7 @@
  */
 #include <Arduino.h>
 #include <TimerOne.h>
+#include <EEPROM.h>
 
 // ======================= Configuração fixa =======================
 const uint8_t PIN_ENC_A   = 2;    // INT0
@@ -174,6 +177,31 @@ void zeraEstados() {
 float potA0 = 0.0f, potMeio = 2535.0f, potA1 = 4064.0f;   // comando pc
 float potZona = 0.03f;   // zona neutra em volta do meio (fração do curso de cada lado)
 
+// A calibração fica na EEPROM (emulada em flash no LGT8F) para sobreviver ao reinício que
+// acontece toda vez que o painel abre a porta serial.
+struct CalPot { uint16_t marca; float a0, meio, a1, zona; };
+const uint16_t MARCA_CAL = 0xCA11;
+
+bool calValida(float a0, float meio, float a1) {
+  return (a0 < meio && meio < a1) || (a0 > meio && meio > a1);
+}
+
+void salvaCalibracao() {
+  CalPot c = { MARCA_CAL, potA0, potMeio, potA1, potZona };
+  const uint8_t *b = (const uint8_t *)&c;
+  for (uint8_t i = 0; i < sizeof(c); i++)
+    if (EEPROM.read(i) != b[i]) EEPROM.write(i, b[i]);
+}
+
+void carregaCalibracao() {
+  CalPot c;
+  uint8_t *b = (uint8_t *)&c;
+  for (uint8_t i = 0; i < sizeof(c); i++) b[i] = EEPROM.read(i);
+  if (c.marca == MARCA_CAL && calValida(c.a0, c.meio, c.a1) && c.zona >= 0 && c.zona < 0.5f) {
+    potA0 = c.a0; potMeio = c.meio; potA1 = c.a1; potZona = c.zona;
+  }
+}
+
 float lePotBruto() {   // média de 4 leituras, 0..4095
   long s = 0;
   for (uint8_t i = 0; i < 4; i++) s += analogRead(PIN_POT);
@@ -262,9 +290,18 @@ void executa(char *c) {
       } else if (c[1] == 'c') {
         uint8_t n = leFloats(c + 2, v, 4);
         // exige a ordem ponta < meio < ponta (ou o contrário) para não dividir por zero
-        if (n >= 3 && ((v[0] < v[1] && v[1] < v[2]) || (v[0] > v[1] && v[1] > v[2]))) {
+        if (n >= 3 && calValida(v[0], v[1], v[2])) {
           potA0 = v[0]; potMeio = v[1]; potA1 = v[2];
           if (n == 4 && v[3] >= 0 && v[3] < 0.5f) potZona = v[3];
+          salvaCalibracao();
+        }
+      } else if (c[1] == 'm') {
+        float a = lePotBruto();
+        if (calValida(potA0, a, potA1)) {
+          potMeio = a; salvaCalibracao();
+          Serial.print(F("#pm ")); Serial.println(a, 0);
+        } else {
+          Serial.println(F("#pm recusado: muito perto de uma ponta"));
         }
       } else if (c[1] == 'a') {
         Serial.print(F("#pa ")); Serial.println(lePotBruto(), 1);
@@ -452,6 +489,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(PIN_ENC_B), isrEncoder, CHANGE);
 
   calculaModeloDiscreto();
+  carregaCalibracao();
   Serial.println(F("#bancada pronta - envie ? para ver os parametros"));
   imprimeParametros();
   tCtrl = micros();

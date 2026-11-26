@@ -123,6 +123,8 @@ class Painel(tk.Tk):
         self.e_qb = ttk.Entry(f, width=9); self.e_qb.grid(row=2, column=2)
         self.e_qt = ttk.Entry(f, width=7); self.e_qt.grid(row=2, column=3)
         ttk.Button(f, text="Enviar onda quadrada", command=self._envia_quadrada).grid(row=3, column=0, columnspan=4, sticky="we")
+        # calibração do zero: com o motor ligado (ex.: m1), gire até onde quer o zero e clique
+        ttk.Button(f, text="Definir meio do potenciômetro aqui (pm)", command=lambda: self.envia("pm")).grid(row=4, column=0, columnspan=4, sticky="we", pady=(4, 0))
         self._preenche_quadrada(0)
 
         # Parâmetros

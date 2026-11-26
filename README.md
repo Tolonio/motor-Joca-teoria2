@@ -207,7 +207,9 @@ cerca de 12 % do curso.
 
 **Interpretação e correção:** o firmware agora mapeia o potenciômetro em **três pontos** (as duas
 pontas e o meio físico), com uma zona neutra de 3 % em volta do meio. Com o potenciômetro no meio,
-a referência passou a ser exatamente 0. Detalhes e como recalibrar em
+a referência passou a ser exatamente 0. Como o meio a olho varia (2535 numa medição, 2914 em outra),
+ele agora é definido com o motor ligado, pelo botão **Definir meio do potenciômetro aqui (pm)**.
+Detalhes e como recalibrar em
 [Calibração do potenciômetro](#calibração-do-potenciômetro).
 
 #### "Tem como ver as saídas no terminal? Onde eu digito os comandos?"
@@ -573,14 +575,23 @@ leitura de 2535 até 4064  →   0 … −1
 Fora da zona neutra o valor é reescalado para não haver salto. Verificação depois de gravar: com o
 potenciômetro no meio, a leitura bruta foi 2540 e a referência ficou em 0,0 em todas as amostras.
 
-**Para recalibrar** (outra bancada, ou se o potenciômetro for trocado), sem recompilar:
+**O meio não dá para acertar pelo olho.** Numa segunda medição, as pontas deram exatamente os
+mesmos valores (0 e 4064), mas o "meio" escolhido a olho deu 2914, e não 2535: uma diferença de 9 %
+do curso. Por isso o meio é definido **com o motor ligado**, vendo onde ele para:
 
-1. No painel, mande `pa` com o potenciômetro em uma ponta, no meio e na outra ponta. A placa
-   responde `#pa <leitura>` em cada posição.
-2. Mande `pc <ponta>,<meio>,<outra ponta>,<zona>`, por exemplo `pc 0,2535,4064,0.03`. Também dá
-   para usar o campo "Calibração potenciômetro" do painel.
-3. `?` mostra a calibração atual (`#pc`). Para ela valer depois de reiniciar a placa, troque os
-   valores padrão (`potA0`, `potMeio`, `potA1`, `potZona`) em `src/main.cpp`.
+1. Abra o painel, conecte e escolha **m1**. A referência vem do potenciômetro.
+2. Gire o potenciômetro até o ponto em que você quer que o motor fique parado.
+3. Clique em **Definir meio do potenciômetro aqui (pm)**, ou mande `pm` no campo Comando. A placa
+   responde `#pm <leitura>`, e a partir daí essa posição vale exatamente 0, com a zona neutra de 3 %
+   em volta.
+
+A calibração (`pm` e `pc`) fica **salva na memória da placa** e continua valendo depois de
+reiniciar, por exemplo quando o painel conecta. Um novo `upload` do firmware apaga essa memória e
+volta aos padrões do código (`potA0`, `potMeio`, `potA1`, `potZona` em `src/main.cpp`).
+
+Para calibrar tudo manualmente: `pa` mostra a leitura bruta (0…4095) da posição atual, e
+`pc <ponta>,<meio>,<outra ponta>,<zona>` define os quatro valores, por exemplo
+`pc 0,2535,4064,0.03`. `?` mostra a calibração atual (`#pc`).
 
 ---
 
@@ -752,6 +763,7 @@ Uma linha por comando, terminada em Enter (o painel faz isso por você).
 | `bp rad` | banda morta do erro de posição |
 | `pc a0,meio,a1,zona` | calibração do potenciômetro: leituras numa ponta, no meio físico e na outra ponta, e zona neutra ([detalhes](#calibração-do-potenciômetro)) |
 | `pa` | mostra a leitura bruta do potenciômetro (0…4095), para calibrar |
+| `pm` | "o meio é aqui": a posição atual do potenciômetro passa a ser referência 0 (fica salvo) |
 | `?` | imprime todos os parâmetros |
 
 Telemetria (50 Hz): `t_ms,modo,referencia,u,velocidade,posicao`.
