@@ -8,6 +8,7 @@ Execute:     python painel.py
 - Botões para os 5 modos, referência (pot / fixa / onda quadrada)
 - Todos os ganhos editáveis e enviados para a placa
 - Gravação em CSV (dados/...) para usar em projeto/compara.py e no relatório
+- Histórico dos últimos 30 min: pausar, voltar no tempo (zoom/arrastar) e salvar um trecho
 """
 import os
 import queue
@@ -22,11 +23,14 @@ import serial.tools.list_ports
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
 PASTA_DADOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dados")
 JANELA_S = 8.0                       # segundos visíveis no gráfico
 N = int(JANELA_S / 0.02)
+HIST_MIN = 30                        # minutos guardados no histórico (memória)
+HIST_N = int(HIST_MIN * 60 / 0.02)
+MAX_PONTOS_PAUSA = 20000             # acima disso o gráfico pausado é decimado (só no desenho)
 
 MODOS = [
     (0, "m0  Malha aberta (u = ref, V)"),
@@ -66,6 +70,11 @@ class Painel(tk.Tk):
         self.gravando = None
         self.modo = 0
         self.dados = {k: deque(maxlen=N) for k in ("t", "r", "u", "w", "th")}
+        # histórico: (t contínuo [s], r, u, w, th, linha original da serial)
+        self.hist = deque(maxlen=HIST_N)
+        self.pausado = False
+        self.t_ult = None      # último t da placa (s), para detectar reinício
+        self.t_off = 0.0       # deslocamento para o tempo não voltar a zero quando a placa reinicia
         self._monta_interface()
         self._atualiza_portas()
         self.after(50, self._tick)
@@ -128,6 +137,16 @@ class Painel(tk.Tk):
         self.e_nome = ttk.Entry(f, width=24); self.e_nome.insert(0, "ensaio"); self.e_nome.grid(row=0, column=0)
         self.bt_grav = ttk.Button(f, text="● Gravar", command=self._grava); self.bt_grav.grid(row=0, column=1)
 
+        # Histórico
+        f = ttk.LabelFrame(esq, text=f"Histórico (últimos {HIST_MIN} min)", padding=6); f.pack(fill=tk.X)
+        self.bt_pausa = ttk.Button(f, text="⏸ Pausar gráfico", command=self._pausa)
+        self.bt_pausa.grid(row=0, column=0, columnspan=3, sticky="we")
+        ttk.Button(f, text="Salvar trecho visível", command=self._salva_visivel).grid(row=1, column=0, columnspan=3, sticky="we")
+        ttk.Button(f, text="Salvar últimos", command=self._salva_ultimos).grid(row=2, column=0, sticky="we")
+        self.e_ult = ttk.Entry(f, width=6); self.e_ult.insert(0, "60"); self.e_ult.grid(row=2, column=1)
+        ttk.Label(f, text="s").grid(row=2, column=2, sticky="w")
+        self.lb_hist = ttk.Label(f, text="0 s guardados", foreground="gray"); self.lb_hist.grid(row=3, column=0, columnspan=3, sticky="w")
+
         # Gráficos
         self.fig = Figure(figsize=(8, 6), dpi=95)
         self.ax1 = self.fig.add_subplot(311)
@@ -144,6 +163,10 @@ class Painel(tk.Tk):
             a.grid(alpha=.3)
         self.fig.tight_layout()
         self.canvas = FigureCanvasTkAgg(self.fig, master=dir_)
+        # barra de navegação: lupa = zoom, cruz = arrastar, casinha = volta à vista inicial
+        self.toolbar = NavigationToolbar2Tk(self.canvas, dir_, pack_toolbar=False)
+        self.toolbar.update()
+        self.toolbar.pack(side=tk.TOP, fill=tk.X)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
         # Valores numéricos + console
@@ -172,11 +195,21 @@ class Painel(tk.Tk):
 
     # ------------------------------------------------------------------ serial
     def _atualiza_portas(self):
-        ps = [p.device for p in serial.tools.list_ports.comports()]
+        # ignora portas seriais "fantasma" da placa-mãe (ttyS*), que não têm hardware USB
+        infos = [p for p in serial.tools.list_ports.comports() if p.vid is not None or "COM" in p.device]
+        ps = [p.device for p in infos]
         self.cb_porta["values"] = ps
-        if ps and not self.cb_porta.get():
-            pref = [p for p in ps if "ACM" in p or "USB" in p or "COM" in p]
-            self.cb_porta.set(pref[-1] if pref else ps[0])
+        if ps and self.cb_porta.get() not in ps:   # vazia ou a porta sumiu (placa reconectou)
+            # a placa (LGT8F / CH340 / Arduino) tem VID 1A86 ou 2341 ou se descreve como "CDC";
+            # outros dispositivos USB-serial (GPS, modem LTE...) ficam por último
+            def nota(p):
+                d = (p.description or "").upper()
+                if p.vid in (0x1A86, 0x2341, 0x2A03) or "CDC" in d or "CH34" in d:
+                    return 0
+                if "GNSS" in d or "GPS" in d or "LTE" in d or "MODEM" in d:
+                    return 2
+                return 1
+            self.cb_porta.set(min(infos, key=nota).device)
 
     def _conectar(self):
         if self.ser:
@@ -204,6 +237,7 @@ class Painel(tk.Tk):
             except Exception:
                 break
             if l:
+                print(l, flush=True)   # espelha a serial no terminal que abriu o painel
                 self.fila.put(l)
 
     def envia(self, cmd):
@@ -259,13 +293,22 @@ class Painel(tk.Tk):
                 continue
             if self.gravando:
                 self.gravando.write(l + "\n")
+            t = t / 1000
+            if self.t_ult is not None and t < self.t_ult - 0.5:   # placa reiniciou: t voltou a zero
+                self.t_off += self.t_ult
+            self.t_ult = t
+            tc = t + self.t_off
+            self.hist.append((tc, r, u, w, th, l))
             if int(m) != self.modo:
                 self.modo = int(m); self.var_modo.set(self.modo); self._eixos_modo(self.modo)
-            for k, v in zip(("t", "r", "u", "w", "th"), (t / 1000, r, u, w, th)):
+            for k, v in zip(("t", "r", "u", "w", "th"), (tc, r, u, w, th)):
                 self.dados[k].append(v)
             novos += 1
         if novos:
-            self._redesenha()
+            if not self.pausado:
+                self._redesenha()
+            dur = self.hist[-1][0] - self.hist[0][0] if self.hist else 0
+            self.lb_hist.config(text=f"{dur:.0f} s guardados ({len(self.hist)} amostras)")
         self.after(60, self._tick)
 
     def _trata_info(self, l):
@@ -290,6 +333,65 @@ class Painel(tk.Tk):
         e = d["r"][-1] - y[-1]
         self.lb_val.config(text=f"ref = {d['r'][-1]:8.3f}   saída = {y[-1]:8.3f}   erro = {e:8.3f}   "
                                 f"u = {d['u'][-1]:6.2f} V   ω = {d['w'][-1]:7.1f} rad/s   θ = {d['th'][-1]:7.3f} rad")
+
+    # ------------------------------------------------------------------ histórico
+    def _pausa(self):
+        self.pausado = not self.pausado
+        if self.pausado:
+            self.bt_pausa.config(text="▶ Voltar ao vivo")
+            self._desenha_historico()
+            self.log("gráfico pausado: use a lupa/cruz da barra acima do gráfico para ver o passado")
+        else:
+            self.bt_pausa.config(text="⏸ Pausar gráfico")
+            self.toolbar.update()          # esquece o zoom/arrasto feito durante a pausa
+            if self.dados["t"]:
+                self._redesenha()
+
+    def _desenha_historico(self):
+        if not self.hist:
+            return
+        h = list(self.hist)
+        passo = max(1, len(h) // MAX_PONTOS_PAUSA)
+        h = h[::passo]
+        t = [x[0] for x in h]
+        pos = self.modo in (2, 4)
+        y = [x[4] if pos else x[3] for x in h]
+        o = [x[3] if pos else x[4] for x in h]
+        self.l_r.set_data(t, [x[1] for x in h]); self.l_y.set_data(t, y)
+        self.l_u.set_data(t, [x[2] for x in h]); self.l_o.set_data(t, o)
+        for a in (self.ax1, self.ax3):
+            a.relim(); a.autoscale_view()
+        # começa mostrando os últimos JANELA_S segundos; arraste para a esquerda para voltar
+        self.ax1.set_xlim(max(t[-1] - JANELA_S, t[0]), t[-1] + 0.05)
+        self.ax2.set_ylim(-12.5, 12.5)
+        self.canvas.draw_idle()
+        self.toolbar.push_current()        # "casinha" volta para esta vista
+
+    def _salva(self, linhas, sufixo):
+        if not linhas:
+            self.log("nada para salvar nesse trecho"); return
+        os.makedirs(PASTA_DADOS, exist_ok=True)
+        nome = self.e_nome.get().strip() or "ensaio"
+        arq = os.path.normpath(os.path.join(PASTA_DADOS, f"{nome}_{sufixo}_{time.strftime('%H%M%S')}.csv"))
+        with open(arq, "w") as f:
+            f.write("t_ms,modo,referencia,u,velocidade,posicao\n")
+            for x in linhas:
+                f.write(x[5] + "\n")
+        self.log(f"{len(linhas)} amostras ({linhas[-1][0] - linhas[0][0]:.1f} s) salvas em {arq}")
+
+    def _salva_visivel(self):
+        t0, t1 = self.ax1.get_xlim()
+        self._salva([x for x in self.hist if t0 <= x[0] <= t1], "trecho")
+
+    def _salva_ultimos(self):
+        try:
+            seg = float(self.e_ult.get().replace(",", "."))
+        except ValueError:
+            self.log("digite os segundos em 'Salvar últimos'"); return
+        if not self.hist:
+            self.log("histórico vazio"); return
+        t1 = self.hist[-1][0]
+        self._salva([x for x in self.hist if x[0] >= t1 - seg], f"ultimos{seg:g}s")
 
     def _fechar(self):
         if self.ser:

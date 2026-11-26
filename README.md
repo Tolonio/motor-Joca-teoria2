@@ -27,6 +27,8 @@ ganho **pela serial, sem recompilar**, usando o painel gráfico (`interface/pain
    - [docs/02-identificacao-e-lgr.md](docs/02-identificacao-e-lgr.md): **Etapa 1** passo a passo
    - [docs/03-espaco-de-estados.md](docs/03-espaco-de-estados.md): **Etapa 2** passo a passo
    - [docs/04-github.md](docs/04-github.md): como versionar e publicar este projeto no GitHub
+   - [docs/05-modos.md](docs/05-modos.md): **o que cada modo (m0 a m4) faz**, como a onda deveria ficar
+     (simulação) e como ela fica na bancada, com exemplos da saída do terminal
 
 ---
 
@@ -36,13 +38,16 @@ ganho **pela serial, sem recompilar**, usando o painel gráfico (`interface/pain
 controle_motor/
 ├── src/main.cpp            firmware (PlatformIO / Arduino): os 5 modos de controle
 ├── platformio.ini          placa LGT8F328P, porta serial, biblioteca TimerOne
-├── interface/painel.py     painel gráfico: gráficos ao vivo, botões, ganhos, gravação CSV
+├── interface/painel.py     painel gráfico: gráficos ao vivo, histórico de 30 min, botões, ganhos, CSV
 ├── projeto/
 │   ├── planta.py           modelo da planta + simulador não linear (usado por todos)
 │   ├── identificacao.py    obtém K, τ e a zona morta a partir de ensaios em malha aberta
 │   ├── lgr.py              ETAPA 1: projeto por LGR no plano z
 │   ├── espaco_estados.py   ETAPA 2: alocação de polos (Ackermann) + observador
-│   └── compara.py          sobrepõe simulação e dados da bancada
+│   ├── compara.py          sobrepõe simulação e dados da bancada
+│   ├── figuras_modos.py    figuras de docs/05-modos.md (simulação x bancada, m0 a m4)
+│   ├── ensaio.py           ensaios automáticos pela linha de comando, sem o painel
+│   └── teste_posicao.py    teste estatístico do controle de posição (alvos aleatórios)
 ├── dados/                  ensaios gravados (CSV)
 ├── docs/                   explicações e figuras
 └── backup/                 firmware ORIGINAL da bancada (.hex) para restaurar
@@ -81,6 +86,14 @@ python interface/painel.py
 Escolha a porta e clique em **Conectar**. A placa reinicia e o painel lê os ganhos atuais.
 Em seguida, escolha o modo (m0 a m4), a referência (potenciômetro, valor fixo ou onda quadrada)
 e acompanhe os gráficos. **● Gravar** salva um CSV em `dados/`.
+
+* O painel escolhe sozinho a porta da placa (chip USB 1A86, "USB CDC-Serial"). Se houver outros
+  dispositivos seriais (GPS, modem), confira a porta. Se a placa reconectar com outro nome, clique em **↻**.
+* Cada linha recebida também é impressa no terminal que abriu o painel (formato em
+  [docs/05-modos.md](docs/05-modos.md#como-ler-a-telemetria-terminal)). Comandos vão no campo **Comando:**.
+* **Histórico:** o painel guarda os últimos 30 min. **⏸ Pausar gráfico** congela a tela; a lupa e a
+  cruz da barra acima dos gráficos dão zoom e arrastam para o passado. **Salvar trecho visível** ou
+  **Salvar últimos N s** gravam esse pedaço em `dados/`.
 
 ### 4. Refazer o projeto (opcional, mas é o trabalho!)
 
@@ -154,6 +167,7 @@ Uma linha por comando, terminada em Enter (o painel faz isso por você).
 | `ob L1,L2` / `oe 0\|1` | ganhos do observador / desliga-liga o observador |
 | `pl K,tau` | modelo da planta usado pelo observador |
 | `zm V` / `zs V` | compensação de atrito girando / parado |
+| `zr V/s` | rampa de partida: com o motor preso, a compensação sobe zr V/s (até 7 V); 0 desliga |
 | `bp rad` | banda morta do erro de posição |
 | `?` | imprime todos os parâmetros |
 
