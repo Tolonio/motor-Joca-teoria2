@@ -30,7 +30,10 @@ JANELA_S = 8.0                       # segundos visíveis no gráfico
 N = int(JANELA_S / 0.02)
 HIST_MIN = 30                        # minutos guardados no histórico (memória)
 HIST_N = int(HIST_MIN * 60 / 0.02)
-MAX_PONTOS_PAUSA = 20000             # acima disso o gráfico pausado é decimado (só no desenho)
+MAX_PONTOS_PAUSA = 20000
+# janela vertical mínima: sem isso o autoescala amplia o degrau de 2,45 rad/s do encoder
+# (1 pulso a cada 20 ms) até parecer uma oscilação grande
+FAIXA_MIN = {"w": 20.0, "th": 0.5}             # acima disso o gráfico pausado é decimado (só no desenho)
 
 MODOS = [
     (0, "m0  Malha aberta (u = ref, V)"),
@@ -325,8 +328,7 @@ class Painel(tk.Tk):
         y, o = (d["th"], d["w"]) if pos else (d["w"], d["th"])
         self.l_r.set_data(t, d["r"]); self.l_y.set_data(t, y)
         self.l_u.set_data(t, d["u"]); self.l_o.set_data(t, o)
-        for a in (self.ax1, self.ax2, self.ax3):
-            a.relim(); a.autoscale_view()
+        self._escala_eixos()
         self.ax1.set_xlim(max(t[-1] - JANELA_S, t[0]), t[-1] + 0.05)
         self.ax2.set_ylim(-12.5, 12.5)
         self.canvas.draw_idle()
@@ -347,6 +349,19 @@ class Painel(tk.Tk):
             if self.dados["t"]:
                 self._redesenha()
 
+    def _escala(self, ax, grandeza):
+        ax.relim(); ax.autoscale_view()
+        y0, y1 = ax.get_ylim()
+        meia = FAIXA_MIN[grandeza]
+        if y1 - y0 < 2 * meia:
+            c = (y0 + y1) / 2
+            ax.set_ylim(c - meia, c + meia)
+
+    def _escala_eixos(self):
+        pos = self.modo in (2, 4)
+        self._escala(self.ax1, "th" if pos else "w")
+        self._escala(self.ax3, "w" if pos else "th")
+
     def _desenha_historico(self):
         if not self.hist:
             return
@@ -359,8 +374,7 @@ class Painel(tk.Tk):
         o = [x[3] if pos else x[4] for x in h]
         self.l_r.set_data(t, [x[1] for x in h]); self.l_y.set_data(t, y)
         self.l_u.set_data(t, [x[2] for x in h]); self.l_o.set_data(t, o)
-        for a in (self.ax1, self.ax3):
-            a.relim(); a.autoscale_view()
+        self._escala_eixos()
         # começa mostrando os últimos JANELA_S segundos; arraste para a esquerda para voltar
         self.ax1.set_xlim(max(t[-1] - JANELA_S, t[0]), t[-1] + 0.05)
         self.ax2.set_ylim(-12.5, 12.5)

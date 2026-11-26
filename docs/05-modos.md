@@ -55,6 +55,58 @@ Linhas que começam com `#` são mensagens: `#ok m1` confirma um comando; `?` li
 | 2º | u [V] | u [V] |
 | 3º | θ | ω |
 
+### O período de amostragem: Ts = 20 ms
+
+**20 ms = 0,02 s** é o "relógio" do controle. A cada 20 ms, ou seja, **50 vezes por segundo**, a
+placa:
+
+1. lê o potenciômetro (referência);
+2. lê quantos pulsos o encoder contou desde a amostra anterior;
+3. calcula θ, ω e o erro;
+4. calcula a nova tensão u e aplica no motor (PWM);
+5. envia uma linha de telemetria.
+
+Por isso o tempo nas linhas do terminal avança de 20 em 20 ms. Para ter uma ideia de escala: a
+324 rad/s, o eixo dá pouco mais de **1 volta a cada 20 ms** (6,5 rad).
+
+### Por que ω aparece "em degraus" (onda quadrada no gráfico)
+
+A velocidade não é medida diretamente. Ela é calculada pelos pulsos do encoder:
+
+```
+ω = (pulsos contados em 20 ms) × (2π / 128) / 0,02 s
+```
+
+Como o encoder só conta **pulsos inteiros**, a velocidade medida só pode assumir múltiplos de
+**2π/128/0,02 = 2,45 rad/s**. Se a velocidade real fica entre dois desses valores, a medida
+**alterna** entre eles. Exemplo real, no m3 com o potenciômetro em −323,5 rad/s:
+
+![m3: ω alternando entre dois valores](figuras/painel_m3_quantizacao.png)
+
+```
+t_ms     modo  ref      u       ω        θ
+2260463, 3, -323.248, -8.870, -323.98, -9403.3271   ← 132 pulsos em 20 ms
+2260483, 3, -323.034, -8.882, -321.52, -9409.7578   ← 131 pulsos em 20 ms
+2260503, 3, -323.376, -8.875, -323.98, -9416.2373   ← 132 pulsos em 20 ms
+```
+
+* A velocidade real está entre −321,52 e −323,98 rad/s. Na maioria das amostras o encoder conta
+  132 pulsos, às vezes 131, e o gráfico desenha uma "onda quadrada".
+* **Essa onda é a resolução do sensor, não o motor oscilando.** A diferença é de 2,45 rad/s em
+  323, ou **0,76 %**. A prova é o 2º gráfico: u fica praticamente constante (−8,88 V), ou seja, o
+  controle não está reagindo a isso.
+* Parece grande porque o painel ajusta a escala automaticamente. No print o eixo vertical vai de
+  −324 a −321,5, uma janela de só 2,5 rad/s. Por isso o painel agora usa uma janela mínima de
+  ±20 rad/s no gráfico de velocidade e de ±0,5 rad no de posição.
+* O tracejado (referência) também treme um pouco: é o ruído de leitura do potenciômetro, menos de
+  0,5 rad/s.
+
+**Por que não medir melhor?** Com Ts maior o degrau diminuiria (com 40 ms seria 1,2 rad/s), mas o
+controle ficaria mais lento e com mais atraso. É um compromisso. Os 20 ms vêm do firmware original,
+e a decodificação 4x do encoder (128 contagens por volta em vez de 32) já deixou a medida 4 vezes
+mais fina que a original, que tinha degraus de 9,8 rad/s ([01-hardware.md](01-hardware.md)). Em
+posição o efeito é o mesmo: θ só muda em passos de 2π/128 = **0,049 rad (2,8°)**.
+
 ---
 
 ## m0: malha aberta
