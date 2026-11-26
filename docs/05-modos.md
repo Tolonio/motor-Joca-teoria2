@@ -177,6 +177,59 @@ de 1 a 2 s e nem sempre converge dentro do patamar (em t ≈ 4–6 s ficou a 0,3
 
 ---
 
+## Seguindo o potenciômetro ao vivo: o que observar
+
+As figuras acima usam ondas quadradas. Abaixo estão dois registros do painel com a referência
+vindo do **potenciômetro**, girado à mão de uma ponta à outra.
+
+### m4: posição seguindo o potenciômetro
+
+![m4 com o potenciômetro](figuras/painel_m4_potenciometro.png)
+
+* **θ (azul) acompanha a referência (tracejado), mas em degraus.** O eixo "gruda", o erro cresce,
+  o controle aumenta u até ele descolar, e ele anda de tranco. É o mesmo stick-slip da onda
+  quadrada, agora em câmera lenta.
+* **u só aparece enquanto o potenciômetro se move.** São rajadas de ±5 V (controle mais
+  compensação de atrito). Com o potenciômetro parado e o erro menor que 0,1 rad (`bp`), **u = 0**
+  e o motor fica desligado. Na linha de baixo: ref = 1,548, θ = 1,620, erro = −0,072 rad (4°),
+  u = 0. Está dentro da tolerância, então o comportamento está correto.
+* **ω (3º gráfico) só tem picos curtos**, de ±40 rad/s: são os trancos.
+* **A faixa vai de −3,1 a +1,55 rad, e não de −π a +π.** Veja a observação sobre o potenciômetro
+  logo abaixo.
+
+### m3: velocidade seguindo o potenciômetro
+
+![m3 com o potenciômetro](figuras/painel_m3_potenciometro.png)
+
+* **ω (azul) segue a referência com um atraso de ~0,1 s.** É a acomodação de ~0,16 s vista no
+  degrau, aplicada a uma referência que muda continuamente.
+* **u acompanha a velocidade:** cerca de −9 V para −324 rad/s e +6 V para +190 rad/s. Pelo modelo,
+  ω ≈ 46,8·(u − 2,94), então 324 rad/s precisam de ~9,9 V. A diferença é a compensação de atrito e
+  o integrador.
+* **θ (3º gráfico) desce sem parar:** em velocidade o eixo gira continuamente e a posição acumula
+  voltas (−2 078 rad ≈ 330 voltas). Por isso, **ao trocar de m3 para m4 o motor demora a parar**:
+  ele "desenrola" essas voltas até chegar ao ângulo do potenciômetro. Clique em **Zerar posição (z)**
+  ao passar de um modo de velocidade para um de posição.
+* Erro na linha de baixo: 0,43 rad/s em 324 rad/s (0,1 %).
+
+### Observação: o lado positivo do potenciômetro não chega ao fim da faixa
+
+Nos dois registros, o lado **negativo** chega perto do máximo (−3,1 de −3,14 rad, e −323 de
+−350 rad/s). Já o **positivo** para em cerca da **metade** (+1,55 de +3,14 rad, e +190 de
++350 rad/s). Isso indica que, na ponta "positiva", o cursor do potenciômetro não chega a 0 V
+(lê ~1 000 em vez de 0, na escala de 0 a 4095). Consequências:
+
+* o **meio físico** do potenciômetro não corresponde à referência zero (fica em torno de −25 % da
+  faixa), e é por isso que "o zero não está no meio";
+* no m2/m4 só dá para pedir até ~+π/2 rad no sentido positivo; no m1/m3, até ~+175 rad/s.
+
+O código não está errado: ele assume que o potenciômetro vai de 0 V a 5 V. A correção é
+**calibrar** as duas pontas (ler o valor real em cada uma e mapear essa faixa para −1…+1), mais
+uma pequena zona neutra no centro. Para medir, use o **m0**, gire até cada ponta e anote o valor de
+`ref` no painel.
+
+---
+
 ## Conclusão: o que comparar no relatório
 
 * **Velocidade (m1 × m3):** os dois métodos dão a mesma resposta, e a simulação prevê a bancada
