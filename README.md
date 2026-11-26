@@ -192,24 +192,19 @@ sentido e do outro lado inverte.
 
 #### "Acho que o zero não está exatamente no meio do potenciômetro. Precisa calibrar?"
 
-Sim, e a calibração já foi feita. Medindo a leitura do potenciômetro (0 a 4095) com ele parado em
-cada posição:
+Investigamos e a resposta tem duas partes:
 
-| Posição | Leitura | Referência no m0, sem calibrar |
-|---|---|---|
-| uma ponta | 0 | +12,00 V |
-| meio físico | ≈ 2535 | **−2,85 V** |
-| outra ponta | 4064 | −11,82 V |
+1. **O potenciômetro está bom.** Ele gira 300°, as pontas leem 0 e 4064 sempre, e a resposta é
+   linear. Então o meio real do giro (150°) lê **2032**, praticamente o que o código já supunha.
+2. **O "meio" que a gente enxerga no botão não é o meio do giro.** Três tentativas de parar "no
+   meio" a olho deram 2535, 2914 e 2982, todas 45° a 70° depois do meio real, e diferentes entre si.
 
-As duas pontas chegam praticamente ao fim da faixa, mas **o meio físico lê 2535, e não ~2032**.
-O código antigo supunha que o meio do curso fosse o meio da faixa, então o zero ficava deslocado
-cerca de 12 % do curso.
-
-**Interpretação e correção:** o firmware agora mapeia o potenciômetro em **três pontos** (as duas
-pontas e o meio físico), com uma zona neutra de 3 % em volta do meio. Com o potenciômetro no meio,
-a referência passou a ser exatamente 0. Como o meio a olho varia (2535 numa medição, 2914 em outra),
-ele agora é definido com o motor ligado, pelo botão **Definir meio do potenciômetro aqui (pm)**.
-Detalhes e como recalibrar em
+**Interpretação:** o zero parecia fora do lugar porque a referência visual do botão engana, não
+porque a leitura estivesse errada. Tentar colocar o zero nesse "meio visual" deixa um lado do
+potenciômetro muito mais sensível que o outro. A calibração adotada é a simétrica,
+`pc 0,2032,4064,0.03`, com uma zona neutra de 3 % em volta do meio para o zero ser exato. Para
+achar o zero, gire até o motor parar (em m1). Ele fica no meio do giro, e não onde o botão "parece"
+estar no meio. Detalhes, a medição e como recalibrar em
 [Calibração do potenciômetro](#calibração-do-potenciômetro).
 
 #### "Tem como ver as saídas no terminal? Onde eu digito os comandos?"
@@ -553,37 +548,53 @@ vindo do **potenciômetro**, girado à mão de uma ponta à outra.
 
 ### Calibração do potenciômetro
 
-Medição feita em 2026-11-26, girando o potenciômetro até cada ponta e parando no meio físico
-(dados lidos no m0):
+O potenciômetro gira **300°** de batente a batente. Ao longo de várias medições em 2026-11-26
+(motor desligado, leitura bruta pelo comando `pa`):
 
-| Posição | Leitura (0…4095) | Antes da calibração (m0) | Depois |
+| Medição | Uma ponta | Outra ponta | "Meio" escolhido a olho |
 |---|---|---|---|
-| uma ponta | 0 | +12,00 V | +12 V |
-| meio físico | ≈ 2535 | −2,85 V | **0 V** |
-| outra ponta | 4064 | −11,82 V | −12 V |
+| 1ª | 0 | 4064 | 2535 |
+| 2ª | 0 | 4064 | 2914 |
+| 3ª (com o motor ligado, `pm`) | — | — | 2982 |
 
-As pontas chegam praticamente ao fim da faixa. O problema era o **meio**: ele lê 2535 em vez de
-~2032, porque o potenciômetro não é perfeitamente linear ou porque o meio físico do curso não
-coincide com o meio elétrico. O firmware agora faz o mapeamento em **dois trechos**:
+As **pontas são exatamente repetíveis**. O "meio" a olho, não: variou 450 pontos, cerca de 11 % do
+curso.
+
+**O potenciômetro é linear.** Numa varredura de batente a batente (figura abaixo, 15 s de giro), a
+leitura sobe em **linha reta com o tempo** no trecho central (~312 leituras/s, desvio de ~2 % da
+faixa). Só o começo e o fim são mais lentos, porque a mão acelera e desacelera. Num potenciômetro
+logarítmico a leitura continuaria acelerando mesmo com a mão constante. Portanto o **meio real do
+giro (150°)** é:
 
 ```
-leitura de 0 até 2535     →  +1 … 0
-leitura de 2535 até 4064  →   0 … −1
-|valor| ≤ 0,03            →   0   (zona neutra: o meio vale exatamente zero)
+leitura(150°) = 4064 × 150° / 300° = 2032
 ```
 
-Fora da zona neutra o valor é reescalado para não haver salto. Verificação depois de gravar: com o
-potenciômetro no meio, a leitura bruta foi 2540 e a referência ficou em 0,0 em todas as amostras.
+| Ângulo | 0° | 75° | 150° | 225° | 300° |
+|---|---|---|---|---|---|
+| Leitura | 0 | 1016 | **2032** | 3048 | 4064 |
 
-**O meio não dá para acertar pelo olho.** Numa segunda medição, as pontas deram exatamente os
-mesmos valores (0 e 4064), mas o "meio" escolhido a olho deu 2914, e não 2535: uma diferença de 9 %
-do curso. Por isso o meio é definido **com o motor ligado**, vendo onde ele para:
+![varredura do potenciômetro](docs/figuras/potenciometro_varredura.png)
 
-1. Abra o painel, conecte e escolha **m1**. A referência vem do potenciômetro.
-2. Gire o potenciômetro até o ponto em que você quer que o motor fique parado.
-3. Clique em **Definir meio do potenciômetro aqui (pm)**, ou mande `pm` no campo Comando. A placa
-   responde `#pm <leitura>`, e a partir daí essa posição vale exatamente 0, com a zona neutra de 3 %
-   em volta.
+Os "meios" escolhidos a olho (2535 a 2982) ficam 45° a 70° depois do meio real do giro: a
+referência visual do botão engana. Quando o meio da calibração não é o meio do giro, um lado fica
+mais sensível que o outro (gira-se pouco para chegar à velocidade máxima de um lado e muito do
+outro). Por isso a calibração adotada é a **simétrica**:
+
+```
+pc 0,2032,4064,0.03
+
+leitura de 0 até 2032     →  +1 … 0
+leitura de 2032 até 4064  →   0 … −1
+|valor| ≤ 0,03            →   0   (zona neutra de 3 % em volta do meio)
+```
+
+Fora da zona neutra o valor é reescalado para não haver salto.
+
+**Ajuste fino do zero com o motor ligado:** se mesmo assim você quiser o "parado" em outra posição,
+escolha **m1**, gire até onde quer o zero e clique em **Definir meio do potenciômetro aqui (pm)**
+(ou mande `pm`). A placa responde `#pm <leitura>`. Lembre que, quanto mais longe de 2032, mais
+assimétrica fica a sensibilidade entre os dois lados.
 
 A calibração (`pm` e `pc`) fica **salva na memória da placa** e continua valendo depois de
 reiniciar, por exemplo quando o painel conecta. Um novo `upload` do firmware apaga essa memória e
@@ -591,7 +602,7 @@ volta aos padrões do código (`potA0`, `potMeio`, `potA1`, `potZona` em `src/ma
 
 Para calibrar tudo manualmente: `pa` mostra a leitura bruta (0…4095) da posição atual, e
 `pc <ponta>,<meio>,<outra ponta>,<zona>` define os quatro valores, por exemplo
-`pc 0,2535,4064,0.03`. `?` mostra a calibração atual (`#pc`).
+`pc 0,2032,4064,0.03`. `?` mostra a calibração atual (`#pc`).
 
 ---
 

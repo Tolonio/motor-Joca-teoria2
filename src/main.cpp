@@ -71,9 +71,9 @@ const float RAD_POR_CONTAGEM = 2.0f * PI / CONTAGENS_POR_VOLTA;
 
 // Faixa da referência pelo potenciômetro, em cada modo
 const float POT_V   = 12.0f;     // m0: ±12 V
-// Calibração do potenciômetro (medida na bancada nº 5 em 2026-11-26): as pontas leem 0 e 4064,
-// mas o meio físico lê ~2535, e não ~2032. Por isso o mapeamento é feito em dois trechos
-// (ponta -> meio e meio -> ponta), e o meio físico vira referência zero.
+// Calibração do potenciômetro (medida na bancada nº 5 em 2026-11-26): giro de 300°, pontas em
+// 0 e 4064, resposta linear, então o meio do giro (150°) lê 2032. O mapeamento é feito em dois
+// trechos (ponta -> meio -> ponta) para permitir mover o zero com o comando pm.
 const float POT_W   = 350.0f;    // m1/m3: ±350 rad/s (máx. ≈ 420 com 12 V)
 const float POT_POS = PI;        // m2/m4: ±π rad (±meia volta)
 
@@ -174,7 +174,7 @@ void zeraEstados() {
   thHat = th; wHat = w;
 }
 
-float potA0 = 0.0f, potMeio = 2535.0f, potA1 = 4064.0f;   // comando pc
+float potA0 = 0.0f, potMeio = 2032.0f, potA1 = 4064.0f;   // comando pc
 float potZona = 0.03f;   // zona neutra em volta do meio (fração do curso de cada lado)
 
 // A calibração fica na EEPROM (emulada em flash no LGT8F) para sobreviver ao reinício que
