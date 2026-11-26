@@ -1,5 +1,5 @@
 """
-Gera as figuras de docs/05-modos.md: para cada modo, "como deveria ficar" (simulação
+Gera as figuras do guia dos modos (README.md): para cada modo, "como deveria ficar" (simulação
 com o modelo não linear da planta) x "como fica" (ensaio real gravado na bancada).
 
 Uso:  python figuras_modos.py        (salva docs/figuras/modo_m0.png ... modo_m4.png)
