@@ -13,6 +13,12 @@ ganho **pela serial, sem recompilar**, usando o painel gráfico (`interface/pain
 
 ![comparação simulação x bancada](docs/figuras/comparacao_bancada.png)
 
+> **Primeira vez na bancada? Comece por [docs/05-modos.md](docs/05-modos.md).** Ele explica o que
+> cada modo (m0 a m4) faz, o que esperar nos gráficos e no terminal, e responde às perguntas que
+> surgiram nos primeiros testes ("nada muda quando giro o potenciômetro", "por que ω varia tanto",
+> "por que o m4 mal responde"...). Versão interativa:
+> <https://tolonio.github.io/motor-Joca-teoria2/docs/modos.html>
+
 ---
 
 ## Sumário
