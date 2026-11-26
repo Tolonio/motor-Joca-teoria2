@@ -1,0 +1,419 @@
+<title>Modos da bancada nº 5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: uma coluna de leitura; cada modo é uma "ficha de ensaio" com texto à esquerda e gráficos à direita */
+:root {
+  --bg: #f6f7f8;
+  --panel: #ffffff;
+  --ink: #15191d;
+  --ink-2: #4a525b;
+  --ink-3: #7a838c;
+  --rule: #dde1e5;
+  --grid: #e9ecef;
+  --accent: #0f6f7c;
+  --accent-soft: #e2f1f3;
+  --s-out: #2a78d6;
+  --s-u: #eb6834;
+  --s-ref: #4a525b;
+  --band: rgba(227,73,72,.10);
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121518; --panel: #1a1e22; --ink: #eef0f2; --ink-2: #b8c0c8; --ink-3: #8a939c;
+  --rule: #2c3238; --grid: #252a30; --accent: #4fb6c4; --accent-soft: #17323a;
+  --s-out: #3987e5; --s-u: #d95926; --s-ref: #b8c0c8; --band: rgba(230,103,103,.14); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121518; --panel: #1a1e22; --ink: #eef0f2; --ink-2: #b8c0c8; --ink-3: #8a939c;
+  --rule: #2c3238; --grid: #252a30; --accent: #4fb6c4; --accent-soft: #17323a;
+  --s-out: #3987e5; --s-u: #d95926; --s-ref: #b8c0c8; --band: rgba(230,103,103,.14); color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+.wrap { max-width: 1120px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 600; letter-spacing: -.01em; }
+h2 { font-size: 24px; font-weight: 600; }
+h3 { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); font-family: var(--f-body); }
+p { margin: 0; }
+code, .mono { font-family: var(--f-mono); font-size: .92em; }
+header.top { padding-block: 36px 20px; display: grid; gap: 10px; }
+header.top p { color: var(--ink-2); max-width: 68ch; }
+header.top a, .qa a { color: var(--accent); }
+
+.resumo { overflow-x: auto; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+td a { color: var(--accent); font-family: var(--f-mono); font-weight: 500; text-decoration: none; }
+
+.painel-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+.painel-map div { border-top: 2px solid var(--rule); padding-top: 8px; font-size: 14px; color: var(--ink-2); }
+.painel-map b { color: var(--ink); display: block; font-weight: 600; }
+
+section.modo { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--rule); display: grid; gap: 18px; }
+.cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; }
+.tag { font-family: var(--f-mono); font-weight: 500; font-size: 22px; color: var(--accent); }
+.chip { font-size: 12px; padding: 2px 9px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.chip.aberta { background: transparent; border: 1px solid var(--rule); color: var(--ink-2); }
+.corpo { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 28px; }
+@media (max-width: 860px) { .corpo { grid-template-columns: minmax(0, 1fr); } }
+.texto { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.texto ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.texto li::marker { color: var(--ink-3); }
+.pot { font-size: 14px; color: var(--ink-2); }
+.pot b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.term { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; overflow-x: auto; }
+.term pre { margin: 0; font-family: var(--f-mono); font-size: 13px; white-space: pre; color: var(--ink); }
+.term .leg { font-family: var(--f-mono); font-size: 12px; color: var(--ink-3); white-space: pre; margin-top: 4px; }
+
+.graficos { display: grid; gap: 6px; min-width: 0; }
+.fig { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 12px 6px; }
+.legenda { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--ink-2); margin-bottom: 4px; }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda i { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.legenda i.tr { border-top-style: dashed; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font-family: var(--f-body); font-size: 11px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+.chart .ylab { fill: var(--ink-2); font-size: 11.5px; }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 6px 9px; font-size: 12px; font-family: var(--f-mono); color: var(--ink); white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+.fonte { font-size: 12.5px; color: var(--ink-3); }
+.fonte code { font-size: 12px; }
+.nota { font-size: 14px; color: var(--ink-2); border-left: 2px solid var(--accent); padding-left: 12px; }
+
+.faq { display: grid; gap: 14px; }
+.faq > h3 { margin-bottom: -4px; }
+.qa { display: grid; gap: 8px; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; min-width: 0; }
+.qa .q { font-weight: 600; color: var(--ink); }
+.qa .q::before { content: "Pergunta  "; font-family: var(--f-mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.qa p, .qa li { color: var(--ink-2); }
+.qa ul, .qa ol { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.qa b { color: var(--ink); }
+.qa img { border: 1px solid var(--rule); border-radius: 6px; display: block; }
+.qa figcaption { font-size: 12.5px; color: var(--ink-3); margin-top: 4px; }
+.qa figure { margin: 4px 0 0; }
+.qa .term { margin-top: 2px; }
+.qa table { font-size: 13.5px; }
+.qa .tab { overflow-x: auto; }
+section.geral { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--rule); display: grid; gap: 18px; }
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Os 5 modos da bancada nº 5</h1>
+  <p>O que cada modo faz, o que o potenciômetro controla em cada um e o que você deve ver nos gráficos e no terminal. Cada modo termina com as perguntas que surgiram nos testes; as gerais estão <a href="#perguntas">logo abaixo do resumo</a>. Todos os gráficos abaixo são <b>ensaios reais</b> desta bancada, gravados em <code>dados/</code>. Passe o mouse sobre eles para ler os valores.</p>
+</header>
+
+<div class="resumo">
+<table>
+  <thead><tr><th>Modo</th><th>Controla</th><th>Potenciômetro define</th><th>Malha</th><th>Método</th><th>Resultado esperado</th></tr></thead>
+  <tbody>
+    <tr><td><a href="#m0">m0</a></td><td>tensão</td><td class="num">−12 … +12 V</td><td>aberta</td><td>nenhum (u = ref)</td><td>parado abaixo de ~3 V; acima disso ω ≈ 47·(u − 2,9) rad/s</td></tr>
+    <tr><td><a href="#m1">m1</a></td><td>velocidade</td><td class="num">−350 … +350 rad/s</td><td>fechada</td><td>LGR · PI</td><td>chega em ~0,14 s, sobressinal ~2 %, erro &lt; 1 rad/s</td></tr>
+    <tr><td><a href="#m2">m2</a></td><td>posição</td><td class="num">−π … +π rad</td><td>fechada</td><td>LGR · avanço</td><td>rápido (~0,1 s), mas pode parar até 0,35 rad longe do alvo</td></tr>
+    <tr><td><a href="#m3">m3</a></td><td>velocidade</td><td class="num">−350 … +350 rad/s</td><td>fechada</td><td>espaço de estados</td><td>igual ao m1: ~0,16 s, sobressinal ~2 %</td></tr>
+    <tr><td><a href="#m4">m4</a></td><td>posição</td><td class="num">−π … +π rad</td><td>fechada</td><td>espaço de estados + integrador</td><td>mais lento (1–2 s), mas o integrador leva o erro a ~0,05 rad</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="painel-map">
+  <div><b>1º gráfico do painel</b>A grandeza controlada (tracejado = pedida, azul = real). No m0 e no m1/m3 é a velocidade ω; no m2/m4 é a posição θ.</div>
+  <div><b>2º gráfico do painel</b>A tensão u aplicada no motor, entre −12 e +12 V. É o "esforço" do controle.</div>
+  <div><b>3º gráfico do painel</b>A outra grandeza: posição θ nos modos de velocidade, velocidade ω nos de posição.</div>
+</div>
+
+<section class="geral" id="perguntas">
+  <div class="cab"><h2>Perguntas que surgiram nos primeiros testes</h2></div>
+  <p class="pot">Perguntas feitas usando a bancada, com as respostas. As perguntas específicas de cada modo estão no fim da seção de cada um.</p>
+  <div class="faq"><h3>Perguntas gerais</h3>
+<div class="qa"><p class="q">Nada muda quando giro o potenciômetro. O código não está funcionando?</p><p>O código estava funcionando. Numa gravação de 40 s, a referência ficou parada em −1,1 V enquanto o potenciômetro estava parado e, ao girá-lo, foi a −11,8 V e a +8,6 V, com o motor girando a até 415 rad/s. Dois motivos fazem parecer que "nada acontece":</p>
+  <ul><li><b>Zona morta no m0:</b> a placa inicia no m0 (malha aberta). Entre −3 V e +3 V, cerca de 25 % do curso em volta do meio, o atrito não deixa o motor girar.</li>
+  <li><b>Porta errada no painel:</b> neste notebook a <code>/dev/ttyACM0</code> é um receptor GPS. A placa é a porta descrita como <b>USB CDC-Serial</b> (ttyACM1 ou ttyACM2). O painel agora escolhe essa porta sozinho, e o botão ↻ atualiza a lista se a placa reconectar com outro nome.</li></ul></div>
+<div class="qa"><p class="q">O que é esse potenciômetro? Por que o motor gira para os dois lados?</p><p>É o botão giratório da bancada: um resistor com um contato deslizante, ligado entre 0 V e 5 V, com o cursor no pino A6. A placa lê de 0 a 4095 e converte para <b>−1…+1, com o zero no meio do curso</b>. Depois multiplica pela faixa do modo (±12 V, ±350 rad/s ou ±π rad).</p>
+  <p>O <b>sinal define o sentido</b>: valor positivo aciona o pino D10 da ponte H, valor negativo aciona o D9, e a corrente no motor se inverte. Por isso, de um lado do meio o motor gira num sentido e do outro lado inverte.</p></div>
+<div class="qa"><p class="q">Acho que o zero não está exatamente no meio do potenciômetro. Precisa calibrar?</p><p>Sim. Nos testes, o lado <b>negativo</b> chega perto do fim da faixa (−3,1 de −3,14 rad), mas o <b>positivo</b> para em cerca da <b>metade</b> (+1,55 rad, e +190 de +350 rad/s). Numa das pontas, o cursor não chega a 0 V. Por isso o meio físico do potenciômetro fica em torno de −25 % da faixa, e não em zero.</p>
+  <p>A correção é calibrar: medir o valor real das duas pontas (no m0, girando até o fim e lendo <code>ref</code>) e mapear essa faixa para −1…+1, com uma pequena zona neutra no centro.</p></div>
+<div class="qa"><p class="q">Tem como ver as saídas no terminal? Onde eu digito os comandos?</p><ol><li>No terminal do VS Code, na pasta do projeto: <code>python3 interface/painel.py</code>.</li>
+  <li>Clique em <b>Conectar</b>. Cada linha que chega da placa aparece nesse terminal (50 por segundo).</li>
+  <li>Os comandos (<code>m1</code>, <code>p</code>, <code>z</code>, <code>?</code>…) vão no campo <b>Comando:</b>, embaixo na janela do painel, e são enviados com Enter. A placa confirma com <code>#ok …</code>.</li></ol>
+  <p>Sem o painel: <code>pio device monitor --echo</code> (feche o painel antes, porque a porta só pode ser aberta por um programa de cada vez).</p></div>
+<div class="qa"><p class="q">O que é cada saída do terminal?</p><div class="term"><pre>33603,0,-5.382,-5.382,0.00,-3453.8376</pre><div class="leg">t_ms  modo  referência  u(V)  ω(rad/s)  θ(rad)</div></div>
+  <div class="tab"><table><tbody>
+  <tr><td>33603</td><td>tempo desde que a placa ligou: 33,6 s</td></tr>
+  <tr><td>0</td><td>modo m0</td></tr>
+  <tr><td>−5.382</td><td>referência: o que foi pedido (V no m0, rad/s no m1/m3, rad no m2/m4)</td></tr>
+  <tr><td>−5.382</td><td>u: tensão aplicada no motor (no m0 é igual à referência)</td></tr>
+  <tr><td>0.00</td><td>ω: velocidade medida (aqui, parado)</td></tr>
+  <tr><td>−3453.8</td><td>θ: posição acumulada; o eixo já deu ~550 voltas desde que a placa ligou</td></tr>
+  </tbody></table></div>
+  <p>Linhas que começam com <code>#</code> são mensagens: <code>#ok m1</code> confirma um comando; <code>?</code> lista os parâmetros (<code>#cv</code>, <code>#ep</code>, <code>#zm</code>…).</p></div>
+<div class="qa"><p class="q">Quero ver dados que já passaram e salvar um pedaço do histórico.</p><p>O painel guarda os últimos <b>30 min</b> na memória:</p>
+  <ul><li><b>⏸ Pausar gráfico</b> congela a tela (os dados continuam sendo guardados).</li>
+  <li>Na barra acima dos gráficos, a <b>cruz</b> arrasta o gráfico para o passado e a <b>lupa</b> dá zoom.</li>
+  <li><b>Salvar trecho visível</b> grava em CSV exatamente o intervalo que está na tela; <b>Salvar últimos N s</b> grava os últimos N segundos. Os arquivos vão para <code>dados/</code>.</li>
+  <li><b>▶ Voltar ao vivo</b> retoma. Ao fechar o painel o histórico se perde, então salve antes.</li></ul></div>
+  </div>
+</section>
+
+<!-- m0 -->
+<section class="modo" id="m0">
+  <div class="cab"><span class="tag">m0</span><h2>Malha aberta</h2><span class="chip aberta">malha aberta</span></div>
+  <div class="corpo">
+    <div class="texto">
+      <p class="pot">Potenciômetro → <b>tensão</b> de −12 a +12 V (meio = 0 V).</p>
+      <div><h3>O que acontece</h3>
+      <p>A placa aplica no motor exatamente a tensão pedida (u = referência). Ela não olha a velocidade para corrigir nada. Se você frear o eixo com a mão, ninguém compensa.</p></div>
+      <div><h3>O que esperar</h3>
+      <ul>
+        <li><b>Abaixo de ~3 V o motor não gira.</b> É o atrito seco (zona morta). Perto do meio do potenciômetro nada acontece.</li>
+        <li>Acima disso, a velocidade cresce em linha reta: cada volt a mais dá ~47 rad/s a mais.</li>
+        <li>Num degrau de tensão, a velocidade chega ao valor final em ~0,06 s (constante de tempo τ ≈ 19 ms).</li>
+        <li>No 1º e no 2º gráfico, referência e u são <b>a mesma curva</b>.</li>
+      </ul></div>
+      <div><h3>Para que serve</h3><p>Identificar o motor: foi daqui que saíram K = 46,75 rad/s/V, τ = 19,4 ms e a zona morta de 2,9 V, usados em todos os projetos.</p></div>
+      <div class="term"><pre>1600,0,6.000,6.000,149.72,63.2736</pre><div class="leg">t_ms  modo  ref(V)  u(V)  ω(rad/s)  θ(rad)</div></div>
+    </div>
+    <div class="graficos">
+      <div class="fig">
+        <div class="legenda"><span><i style="border-color:var(--s-out);border-top-width:8px;width:8px;border-radius:50%"></i>velocidade final medida</span><span><i style="border-color:var(--s-u)"></i>modelo ω = 46,75·(u − 2,94)</span><span><i style="border-color:var(--band);border-top-width:8px"></i>zona morta</span></div>
+        <div class="chart" id="c-estatica"></div>
+      </div>
+      <div class="fig">
+        <div class="legenda"><span><i style="border-color:var(--s-out)"></i>ω real</span><span><i style="border-color:var(--s-u)"></i>u (= referência) × 20</span></div>
+        <div class="chart" id="c-m0"></div>
+      </div>
+      <p class="fonte">Em cima: velocidade em regime para cada tensão (<code>dados/degrau_malha_aberta_*.csv</code>). Embaixo: degraus de 0 → 6 V (<code>degrau_malha_aberta_6.csv</code>); u aparece multiplicado por 20 só para caber no mesmo eixo.</p>
+    </div>
+  </div>
+  <div class="faq"><h3>Perguntas sobre este modo</h3>
+<div class="qa"><p class="q">Quando coloco a mão no eixo girando, não era para acontecer algo?</p><p>No m0, <b>não</b>. A velocidade cai e <b>fica baixa</b>, e u não muda, porque a placa não olha o resultado. É a malha aberta. Compare com o m1, em que o controle reage. Neste modo o "erro" mostrado no painel não tem significado: ele compara volts com rad/s.</p></div>
+  </div>
+</section>
+
+<!-- m1 -->
+<section class="modo" id="m1">
+  <div class="cab"><span class="tag">m1</span><h2>Velocidade · LGR (PI)</h2><span class="chip">malha fechada</span></div>
+  <div class="corpo">
+    <div class="texto">
+      <p class="pot">Potenciômetro → <b>velocidade desejada</b> de −350 a +350 rad/s (350 rad/s ≈ 3 340 rpm).</p>
+      <div><h3>O que acontece</h3>
+      <p>A cada 20 ms a placa mede a velocidade, calcula o erro (pedida − real) e um controlador PI ajusta a tensão. O "P" reage ao erro do momento; o "I" vai somando o erro até ele zerar. O PI foi projetado pelo Lugar Geométrico das Raízes (Etapa 1).</p></div>
+      <div><h3>O que esperar</h3>
+      <ul>
+        <li>A linha azul <b>alcança a tracejada em ~0,14 s</b> e fica em cima dela.</li>
+        <li>Sobressinal pequeno, ~2 % (passa ~3 rad/s do alvo e volta).</li>
+        <li>Erro em regime &lt; 1 rad/s. A curva "treme" em degraus de 2,45 rad/s: é a resolução do encoder.</li>
+        <li>u dá um pico no instante do degrau e depois assenta: ~5,3 V para 100 rad/s e ~8,2 V para 250 rad/s.</li>
+        <li>Freie o eixo com o dedo: u sobe sozinho e a velocidade volta.</li>
+      </ul></div>
+      <div class="term"><pre>1502,1,250.000,8.219,247.89,206.5106</pre><div class="leg">t_ms  modo  ref(rad/s)  u(V)  ω(rad/s)  θ(rad)</div></div>
+    </div>
+    <div class="graficos">
+      <div class="fig"><div class="legenda"><span><i class="tr" style="border-color:var(--s-ref)"></i>referência</span><span><i style="border-color:var(--s-out)"></i>ω real</span></div><div class="chart" id="c-m1"></div></div>
+      <div class="fig"><div class="legenda"><span><i style="border-color:var(--s-u)"></i>u aplicado</span></div><div class="chart" id="c-m1u"></div></div>
+      <p class="fonte">Onda quadrada 100 ↔ 250 rad/s, 750 ms em cada nível (botão "Enviar onda quadrada"). <code>dados/resultado_m1.csv</code></p>
+    </div>
+  </div>
+  <div class="faq"><h3>Perguntas sobre este modo</h3>
+<div class="qa"><p class="q">O que o m1 faz? O que eu vejo nele?</p><p>O m1 controla a <b>velocidade</b>. O potenciômetro define quão rápido o eixo deve girar e, a cada 20 ms, a placa mede a velocidade, calcula o erro e o PI ajusta a tensão. No painel: 1º gráfico, a linha azul (real) segue a tracejada (pedida); 2º gráfico, u, o esforço do controle; 3º gráfico, θ, que sobe sem parar enquanto o eixo gira.</p>
+  <p>Teste "oficial": <b>Enviar onda quadrada</b> (100 ↔ 250 rad/s). Meça o tempo de subida, o sobressinal e o erro em regime.</p></div>
+<div class="qa"><p class="q">Quando coloco a mão no eixo girando, não era para acontecer algo?</p><p>Sim, e no m1 é onde aparece melhor:</p>
+  <ol><li>a velocidade cai e o <b>erro</b> aparece;</li>
+  <li><b>u sobe</b> no 2º gráfico e você sente o motor fazer mais força;</li>
+  <li>pelo integrador, a velocidade <b>volta para o valor pedido</b> mesmo com a mão lá, e só u fica mais alto;</li>
+  <li>se você frear muito, u chega a <b>12 V</b> (o máximo) e aí o erro não zera.</li></ol>
+  <p>Cuidado: a 300–400 rad/s o eixo gira a mais de 3 000 rpm. Freie de leve, de lado.</p></div>
+  </div>
+</section>
+
+<!-- m2 -->
+<section class="modo" id="m2">
+  <div class="cab"><span class="tag">m2</span><h2>Posição · LGR (avanço)</h2><span class="chip">malha fechada</span></div>
+  <div class="corpo">
+    <div class="texto">
+      <p class="pot">Potenciômetro → <b>ângulo desejado</b> de −π a +π rad (meia volta para cada lado).</p>
+      <div><h3>O que acontece</h3>
+      <p>A placa mede a posição pelo encoder e corrige com um compensador de avanço (Etapa 1). O eixo se comporta como um servo: vai até o ângulo e para. Se o erro ficar menor que 0,1 rad, o controle desliga para o motor não ficar "caçando" o alvo.</p></div>
+      <div><h3>O que esperar</h3>
+      <ul>
+        <li>O eixo se move rápido, em ~0,1 s.</li>
+        <li><b>Nem sempre para exatamente no alvo.</b> Às vezes fica até ~0,35 rad longe (20°), com u ≈ 4 V "empurrando" sem conseguir mexer. O atrito estático segura e este controlador não tem integrador para insistir.</li>
+        <li>Esse erro muda a cada ensaio, porque o atrito varia com o ângulo do eixo.</li>
+        <li>Antes de usar, clique em <b>Zerar posição (z)</b>. Senão ele tenta desenrolar todas as voltas acumuladas.</li>
+      </ul></div>
+      <div class="term"><pre>2041,2,-1.571,-4.198,0.00,-1.2272</pre><div class="leg">t_ms  modo  ref(rad)  u(V)  ω(rad/s)  θ(rad)</div></div>
+    </div>
+    <div class="graficos">
+      <div class="fig"><div class="legenda"><span><i class="tr" style="border-color:var(--s-ref)"></i>referência</span><span><i style="border-color:var(--s-out)"></i>θ real</span></div><div class="chart" id="c-m2"></div></div>
+      <div class="fig"><div class="legenda"><span><i style="border-color:var(--s-u)"></i>u aplicado</span></div><div class="chart" id="c-m2u"></div></div>
+      <p class="fonte">Onda quadrada −π/2 ↔ +π/2 rad, 2 s em cada nível. Repare nos patamares de 0–2 s e 4–6 s: θ parou antes do alvo. <code>dados/resultado_m2_longo.csv</code></p>
+    </div>
+  </div>
+  <div class="faq"><h3>Perguntas sobre este modo</h3>
+<div class="qa"><p class="q">Quando coloco a mão no eixo, não era para acontecer algo?</p><p>No m2, segure o eixo ou tire-o do lugar: se você o desloca mais de ~6° (0,1 rad), o motor empurra de volta, com força proporcional ao deslocamento. Abaixo de 6° ele não reage: é a tolerância <code>bp</code>, ignorada de propósito para o motor não ficar tremendo. Antes de usar, clique em <b>Zerar posição (z)</b>.</p></div>
+  </div>
+</section>
+
+<!-- m3 -->
+<section class="modo" id="m3">
+  <div class="cab"><span class="tag">m3</span><h2>Velocidade · Espaço de estados</h2><span class="chip">malha fechada</span></div>
+  <div class="corpo">
+    <div class="texto">
+      <p class="pot">Potenciômetro → <b>velocidade desejada</b> de −350 a +350 rad/s, igual ao m1.</p>
+      <div><h3>O que acontece</h3>
+      <p>Mesmo objetivo do m1, outro método de projeto (Etapa 2): a tensão é calculada a partir do estado do motor (a velocidade ω) mais um integrador do erro, <code>u = −k1·ω + ki·∫erro</code>. Os polos foram escolhidos por alocação (Ackermann), iguais aos do PI, para os dois serem comparáveis.</p></div>
+      <div><h3>O que esperar</h3>
+      <ul>
+        <li><b>Praticamente igual ao m1</b>: acomodação ~0,16 s, sobressinal ~2 %, erro &lt; 1 rad/s.</li>
+        <li>u assenta em ~5,0 V (100 rad/s) e ~8,1 V (250 rad/s).</li>
+        <li>A diferença está no pico de u no degrau: o m3 não reage ao "salto" da referência como o P do PI, então a subida de u é mais suave.</li>
+        <li>Para o relatório: compare este gráfico com o do m1.</li>
+      </ul></div>
+      <div class="term"><pre>1502,3,250.000,8.044,250.35,199.8347</pre><div class="leg">t_ms  modo  ref(rad/s)  u(V)  ω(rad/s)  θ(rad)</div></div>
+    </div>
+    <div class="graficos">
+      <div class="fig"><div class="legenda"><span><i class="tr" style="border-color:var(--s-ref)"></i>referência</span><span><i style="border-color:var(--s-out)"></i>ω real</span></div><div class="chart" id="c-m3"></div></div>
+      <div class="fig"><div class="legenda"><span><i style="border-color:var(--s-u)"></i>u aplicado</span></div><div class="chart" id="c-m3u"></div></div>
+      <p class="fonte">Mesma onda quadrada do m1. <code>dados/resultado_m3.csv</code></p>
+    </div>
+  </div>
+  <div class="faq"><h3>Perguntas sobre este modo</h3>
+<div class="qa"><p class="q">Quanto valem os tais 20 ms?</p><p><b>20 ms = 0,02 s</b> é o período de amostragem (Ts), o "relógio" do controle. A cada 20 ms, ou seja, 50 vezes por segundo, a placa lê o potenciômetro, lê os pulsos do encoder, calcula ω, θ e o erro, aplica a nova tensão e manda uma linha para o terminal. Por isso o tempo no terminal avança de 20 em 20. A 324 rad/s, o eixo dá pouco mais de 1 volta a cada 20 ms.</p></div>
+<div class="qa"><p class="q">Por que ω está variando tanto? Por que a onda tem esse formato?</p><figure><img src="figuras/painel_m3_quantizacao.png" alt="Painel no m3 com ω alternando entre −323,98 e −321,52 rad/s" loading="lazy"><figcaption>m3 com o potenciômetro em −323,5 rad/s. O eixo vertical do 1º gráfico vai só de −324 a −321,5.</figcaption></figure>
+  <p><b>Ela quase não varia: é a escala que engana.</b> A janela vertical tem só 2,5 rad/s. A velocidade é calculada pelos pulsos do encoder, <code>ω = pulsos em 20 ms × 2π/128 / 0,02</code>, e só pode assumir múltiplos de <b>2,45 rad/s</b>. A velocidade real (~−323,4) fica entre dois desses valores, então a medida alterna:</p>
+  <div class="term"><pre>2260463,3,-323.248,-8.870,-323.98,-9403.3271   ← 132 pulsos
+2260483,3,-323.034,-8.882,-321.52,-9409.7578   ← 131 pulsos
+2260503,3,-323.376,-8.875,-323.98,-9416.2373   ← 132 pulsos</pre></div>
+  <p>Isso é a <b>resolução do sensor</b>, 0,76 %, e não o motor oscilando: u fica constante em −8,88 V. O painel agora usa uma janela mínima de ±20 rad/s para esse efeito não parecer grande. Com Ts maior o degrau diminuiria, mas o controle ficaria mais lento.</p></div>
+<div class="qa"><p class="q">Seguindo o potenciômetro: o que devo observar?</p><figure><img src="figuras/painel_m3_potenciometro.png" alt="Painel no m3 seguindo o potenciômetro" loading="lazy"><figcaption>m3 com o potenciômetro girado de ponta a ponta.</figcaption></figure>
+  <ul><li>ω segue a referência com ~0,1 s de atraso, e u acompanha (−9 V a −324 rad/s, +6 V a +190 rad/s).</li>
+  <li>θ desce sem parar: o eixo acumula voltas (−2 078 rad ≈ 330 voltas).</li>
+  <li>O lado positivo só chega a +190 rad/s: é o potenciômetro (veja "Perguntas gerais").</li></ul></div>
+  </div>
+</section>
+
+<!-- m4 -->
+<section class="modo" id="m4">
+  <div class="cab"><span class="tag">m4</span><h2>Posição · Espaço de estados</h2><span class="chip">malha fechada</span></div>
+  <div class="corpo">
+    <div class="texto">
+      <p class="pot">Potenciômetro → <b>ângulo desejado</b> de −π a +π rad, igual ao m2.</p>
+      <div><h3>O que acontece</h3>
+      <p>Mesmo objetivo do m2, projetado por espaço de estados: usa posição <b>e</b> velocidade mais um integrador, <code>u = k1·(r − θ) − k2·ω + ki·∫erro</code>. Tem um observador opcional que estima a velocidade pelo modelo; ele vem desligado (<code>oe 1</code> liga).</p></div>
+      <div><h3>O que esperar</h3>
+      <ul>
+        <li>O eixo se aproxima do alvo e, se parar antes, <b>o integrador vai aumentando u até ele andar mais um pouco</b>.</li>
+        <li>Erro final menor que no m2, tipicamente 0,05 rad (3°).</li>
+        <li>Em compensação é mais lento (1–2 s) e às vezes passa do alvo ou anda "aos trancos" (stick-slip). No patamar de 4–6 s ele terminou a 0,34 rad do alvo.</li>
+        <li>Também precisa de <b>Zerar posição (z)</b> antes.</li>
+      </ul></div>
+      <div class="term"><pre>8042,4,1.571,0.000,0.00,1.5217</pre><div class="leg">t_ms  modo  ref(rad)  u(V)  ω(rad/s)  θ(rad)</div></div>
+    </div>
+    <div class="graficos">
+      <div class="fig"><div class="legenda"><span><i class="tr" style="border-color:var(--s-ref)"></i>referência</span><span><i style="border-color:var(--s-out)"></i>θ real</span></div><div class="chart" id="c-m4"></div></div>
+      <div class="fig"><div class="legenda"><span><i style="border-color:var(--s-u)"></i>u aplicado</span></div><div class="chart" id="c-m4u"></div></div>
+      <p class="fonte">Mesma onda quadrada do m2. <code>dados/resultado_m4_longo.csv</code></p>
+    </div>
+  </div>
+  <div class="faq"><h3>Perguntas sobre este modo</h3>
+<div class="qa"><p class="q">No m4 ele mal responde quando mexo no potenciômetro. Está certo isso?</p><p>Em boa parte, sim. O m4 é o modo mais lento da bancada:</p>
+  <ul><li>o curso todo do potenciômetro equivale a só <b>uma volta</b> do eixo (±π rad);</li>
+  <li>erros menores que <b>0,1 rad (~6°)</b> são ignorados de propósito (<code>bp</code>);</li>
+  <li>com erro pequeno, a tensão não vence o atrito estático (2,4 a 5,7 V nesta bancada), e o integrador leva <b>1 a 2 s</b> para aumentar u até o eixo descolar.</li></ul>
+  <p>Para ver isso, observe u: se fica entre 4 e 6 V, subindo, e θ não muda, é o atrito segurando. Para uma resposta mais viva: <code>zr 20</code> (rampa de partida) ou <code>bp 0.05</code>.</p></div>
+<div class="qa"><p class="q">Acho que demorou para mudar de m3 para m4.</p><p>A troca é imediata (na amostra seguinte, e a placa responde <code>#ok m4</code>). A demora vem da <b>posição acumulada no m3</b>: girando a 100 rad/s por 10 s, θ soma ~1 000 rad (160 voltas). Ao entrar no m4, o controle quer levar θ até o ângulo do potenciômetro (entre −π e +π) e precisa <b>desenrolar todas essas voltas</b>. Clique em <b>Zerar posição (z)</b> ao passar de um modo de velocidade para um de posição.</p>
+  <p>Num print, a tela mostrava ref = −1,833, θ = −1,767, erro = −0,066 e u = 0. Estava certo: o erro estava dentro da tolerância de 0,1 rad e o controle desligou o motor.</p></div>
+<div class="qa"><p class="q">Está certo esse −2 a 2? Por que fica tão baixo?</p><figure><img src="figuras/painel_m4_potenciometro.png" alt="Painel no m4 seguindo o potenciômetro" loading="lazy"><figcaption>m4 com o potenciômetro girado de ponta a ponta.</figcaption></figure>
+  <p>O controle está certo: θ (azul) segue a referência em degraus (stick-slip). u só aparece em rajadas de ±5 V enquanto o potenciômetro se move e volta a 0 quando o erro fica abaixo de 0,1 rad (no fim: ref 1,548, θ 1,620, erro −0,072).</p>
+  <p>A faixa é que está errada: deveria ir de <b>−3,14 a +3,14</b>, mas vai de −3,1 a só <b>+1,55</b>. O lado positivo do potenciômetro não chega ao fim, e isso se resolve com a calibração (veja "Perguntas gerais").</p></div>
+  </div>
+</section>
+
+<section class="modo">
+  <h2>Resumo da comparação</h2>
+  <p class="nota">Na <b>velocidade</b> (m1 × m3), os dois métodos dão o mesmo resultado e a bancada bate com a simulação. Na <b>posição</b> (m2 × m4), quem manda é o atrito estático: sem integrador (m2) o eixo é rápido mas para onde o atrito deixar; com integrador (m4) chega mais perto do alvo, mas devagar e aos trancos. Essa é uma das conclusões principais do trabalho.</p>
+</section>
+</div>
+
+<script src="modos_dados.js"></script>
+<script>
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function niceTicks(a, b, n) {
+  const span = b - a, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => span / s <= n) || mag * 10;
+  const t = []; for (let v = Math.ceil(a / step) * step; v <= b + 1e-9; v += step) t.push(+v.toFixed(6)); return t;
+}
+const fmt = v => Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2);
+const fmtAx = v => (Math.round(v * 1000) / 1000).toString().replace('.', ',').replace('-', '−');
+
+function chart(id, o) {
+  const el = document.getElementById(id); if (!el) return;
+  const W = 640, H = o.h || 190, m = { l: 54, r: 12, t: 8, b: 30 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const xs = o.x, [x0, x1] = o.xr || [Math.min(...xs), Math.max(...xs)], [y0, y1] = o.yr;
+  const X = v => m.l + (v - x0) / (x1 - x0) * iw, Y = v => m.t + (1 - (v - y0) / (y1 - y0)) * ih;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria}">`;
+  if (o.band) s += `<rect x="${X(o.band[0])}" y="${m.t}" width="${X(o.band[1]) - X(o.band[0])}" height="${ih}" fill="var(--band)"/>`;
+  for (const t of niceTicks(y0, y1, 4)) s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--grid)" stroke-width="1"/><text x="${m.l - 6}" y="${Y(t) + 3.5}" text-anchor="end">${fmtAx(t)}</text>`;
+  for (const t of niceTicks(x0, x1, 7)) s += `<text x="${X(t)}" y="${H - 12}" text-anchor="middle">${fmtAx(t)}</text>`;
+  s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(Math.max(y0, Math.min(y1, 0)))}" y2="${Y(Math.max(y0, Math.min(y1, 0)))}" stroke="var(--rule)" stroke-width="1"/>`;
+  s += `<text class="ylab" transform="translate(12 ${m.t + ih / 2}) rotate(-90)" text-anchor="middle">${o.ylab}</text>`;
+  s += `<text x="${W - m.r}" y="${H - 1}" text-anchor="end">${o.xlab}</text>`;
+  for (const se of o.series) {
+    const sx = se.x || xs;
+    const pts = se.y.map((v, i) => `${X(sx[i]).toFixed(1)},${Y(Math.max(y0, Math.min(y1, v))).toFixed(1)}`).join(' ');
+    if (!se.noLine) s += `<polyline points="${pts}" fill="none" stroke="var(${se.c})" stroke-width="${se.w || 2}" stroke-linejoin="round" ${se.dash ? 'stroke-dasharray="5 4"' : ''}/>`;
+    if (se.dots) se.y.forEach((v, i) => s += `<circle cx="${X(xs[i])}" cy="${Y(v)}" r="4.5" fill="var(${se.c})" stroke="var(--panel)" stroke-width="2"/>`);
+  }
+  s += `<line class="cross" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="var(--ink-3)" stroke-width="1" visibility="hidden"/>`;
+  s += `<rect class="hit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/></svg><div class="tip" hidden></div>`;
+  el.innerHTML = s;
+  const svg = el.querySelector('svg'), cross = el.querySelector('.cross'), tip = el.querySelector('.tip');
+  const move = ev => {
+    const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * W / r.width;
+    const xv = x0 + (px - m.l) / iw * (x1 - x0);
+    let i = 0, best = 1e9; xs.forEach((x, k) => { const d = Math.abs(x - xv); if (d < best) { best = d; i = k; } });
+    cross.setAttribute('x1', X(xs[i])); cross.setAttribute('x2', X(xs[i])); cross.setAttribute('visibility', 'visible');
+    tip.innerHTML = `${o.xname} = ${fmt(xs[i])} ${o.xun}<br>` + o.series.filter(se => !se.x).map(se => `${se.name} = ${fmt(se.y[i] / (se.k || 1))} ${se.un}`).join('<br>');
+    tip.hidden = false;
+    const left = X(xs[i]) * r.width / W; const tw = tip.offsetWidth;
+    tip.style.left = (left + 12 + tw > r.width ? left - tw - 12 : left + 12) + 'px'; tip.style.top = '6px';
+  };
+  svg.addEventListener('pointermove', move);
+  svg.addEventListener('pointerleave', () => { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); });
+}
+
+const E = D.estatica;
+const MU = Array.from({ length: 241 }, (_, i) => -12 + i * 0.1);
+chart('c-estatica', { x: E.map(p => p[0]), xr: [-12, 12], yr: [-440, 440], h: 200, band: [-2.94, 2.94],
+  series: [
+    { name: 'modelo', x: MU, y: MU.map(u => Math.abs(u) > 2.94 ? 46.75 * (u - Math.sign(u) * 2.94) : 0), c: '--s-u', w: 1.5 },
+    { name: 'ω medida', y: E.map(p => p[1]), c: '--s-out', dots: true, noLine: true, un: 'rad/s' }],
+  ylab: 'ω final [rad/s]', xlab: 'tensão u [V]', xname: 'u', xun: 'V', aria: 'Velocidade final em função da tensão' });
+chart('c-m0', { x: D.m0.t, yr: [-10, 160], series: [
+  { name: 'u', y: D.m0.u.map(v => v * 20), k: 20, c: '--s-u', un: 'V' },
+  { name: 'ω', y: D.m0.w, c: '--s-out', un: 'rad/s' }],
+  ylab: 'ω [rad/s]', xlab: 't [s]', xname: 't', xun: 's', aria: 'Degraus de tensão em malha aberta' });
+function par(k, vlab, yr, uyr, un) {
+  const d = D[k], y = d.w || d.th;
+  chart('c-' + k, { x: d.t, yr, series: [
+    { name: 'ref', y: d.r, c: '--s-ref', dash: true, w: 1.5, un },
+    { name: d.w ? 'ω' : 'θ', y, c: '--s-out', un }],
+    ylab: vlab, xlab: 't [s]', xname: 't', xun: 's', aria: 'Referência e saída, modo ' + k });
+  chart('c-' + k + 'u', { x: d.t, yr: uyr, h: 130, series: [{ name: 'u', y: d.u, c: '--s-u', un: 'V' }],
+    ylab: 'u [V]', xlab: 't [s]', xname: 't', xun: 's', aria: 'Tensão aplicada, modo ' + k });
+}
+par('m1', 'ω [rad/s]', [50, 300], [0, 12], 'rad/s');
+par('m3', 'ω [rad/s]', [50, 300], [0, 12], 'rad/s');
+par('m2', 'θ [rad]', [-2.5, 2.5], [-8, 8], 'rad');
+par('m4', 'θ [rad]', [-2.5, 2.5], [-8, 8], 'rad');
+</script>

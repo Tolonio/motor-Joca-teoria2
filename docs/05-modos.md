@@ -13,6 +13,12 @@ ensaios em [`dados/`](../dados). Em todas:
 * **azul** = bancada: **como fica**;
 * gráfico de baixo = **u**, a tensão aplicada no motor.
 
+> **Versão interativa com perguntas e respostas:** [modos.html](modos.html) tem este mesmo conteúdo
+> com gráficos em que dá para ler os valores com o mouse, mais as perguntas que surgiram usando a
+> bancada ("nada muda quando giro o potenciômetro", "por que ω varia tanto", "por que o m4 mal
+> responde"...), cada uma no modo correspondente. Abra o arquivo no navegador (o GitHub mostra só o
+> código HTML).
+
 ## Resumo
 
 | Modo | Controla | Potenciômetro define | Malha | Método | Resultado na bancada |

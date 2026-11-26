@@ -29,6 +29,9 @@ ganho **pela serial, sem recompilar**, usando o painel gráfico (`interface/pain
    - [docs/04-github.md](docs/04-github.md): como versionar e publicar este projeto no GitHub
    - [docs/05-modos.md](docs/05-modos.md): **o que cada modo (m0 a m4) faz**, como a onda deveria ficar
      (simulação) e como ela fica na bancada, com exemplos da saída do terminal
+   - [docs/modos.html](docs/modos.html): a mesma explicação em página interativa (gráficos com os
+     valores ao passar o mouse) e **as perguntas que surgiram nos testes, respondidas em cada modo**.
+     O GitHub mostra só o código do HTML: abra o arquivo no navegador depois de clonar/baixar o repositório.
 
 ---
 
