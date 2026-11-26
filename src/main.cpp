@@ -38,6 +38,9 @@
  *   ob L1,L2            ganhos do observador de posição
  *   oe 0|1              desliga / liga o observador
  *   pl K,tau            modelo da planta (usado pelo observador)
+ *   pc a0,am,a1,zn      calibração do potenciômetro: leitura numa ponta (a0 -> +1), no meio
+ *                       físico (am -> 0), na outra ponta (a1 -> -1) e zona neutra (fração, ex. 0.03)
+ *   pa                  imprime a leitura bruta do potenciômetro (0..4095), para calibrar
  *   zm <V>              compensação de zona morta (V), 0 = desliga
  *   zs <V>              compensação de atrito estático (usada com o motor parado)
  *   zr <V/s>            rampa de partida: com o motor preso, zs sobe zr V/s (até 7 V)
@@ -65,6 +68,9 @@ const float RAD_POR_CONTAGEM = 2.0f * PI / CONTAGENS_POR_VOLTA;
 
 // Faixa da referência pelo potenciômetro, em cada modo
 const float POT_V   = 12.0f;     // m0: ±12 V
+// Calibração do potenciômetro (medida na bancada nº 5 em 2026-11-26): as pontas leem 0 e 4064,
+// mas o meio físico lê ~2535, e não ~2032. Por isso o mapeamento é feito em dois trechos
+// (ponta -> meio e meio -> ponta), e o meio físico vira referência zero.
 const float POT_W   = 350.0f;    // m1/m3: ±350 rad/s (máx. ≈ 420 com 12 V)
 const float POT_POS = PI;        // m2/m4: ±π rad (±meia volta)
 
@@ -165,10 +171,26 @@ void zeraEstados() {
   thHat = th; wHat = w;
 }
 
-float lePot() {   // média de 4 leituras, retorna -1..+1 (sentido igual ao original)
+float potA0 = 0.0f, potMeio = 2535.0f, potA1 = 4064.0f;   // comando pc
+float potZona = 0.03f;   // zona neutra em volta do meio (fração do curso de cada lado)
+
+float lePotBruto() {   // média de 4 leituras, 0..4095
   long s = 0;
   for (uint8_t i = 0; i < 4; i++) s += analogRead(PIN_POT);
-  return 1.0f - 2.0f * (s / 4.0f) / 4095.0f;
+  return s / 4.0f;
+}
+
+float lePot() {   // retorna -1..+1 (sentido igual ao original: leitura baixa = positivo)
+  float a = lePotBruto();
+  // do lado da ponta a0: 0..+1; do lado da ponta a1: 0..-1 (vale para a0 < a1 ou a0 > a1)
+  float x = ((a - potMeio) * (potA0 - potMeio) >= 0) ? (a - potMeio) / (potA0 - potMeio)
+                                                     : -(a - potMeio) / (potA1 - potMeio);
+  if (x > 1) x = 1;
+  if (x < -1) x = -1;
+  // zona neutra: perto do meio vale exatamente 0; fora dela reescala para não dar salto
+  float m = fabs(x);
+  if (m <= potZona) return 0.0f;
+  return (x > 0 ? 1 : -1) * (m - potZona) / (1.0f - potZona);
 }
 
 float escalaPot() {
@@ -196,6 +218,8 @@ void imprimeParametros() {
   Serial.print(F("#ob ")); Serial.print(obsL1, 6); Serial.print(','); Serial.println(obsL2, 6);
   Serial.print(F("#oe ")); Serial.println(observadorLigado);
   Serial.print(F("#pl ")); Serial.print(plantaK, 4); Serial.print(','); Serial.println(plantaTau, 5);
+  Serial.print(F("#pc ")); Serial.print(potA0, 0); Serial.print(','); Serial.print(potMeio, 0);
+  Serial.print(','); Serial.print(potA1, 0); Serial.print(','); Serial.println(potZona, 3);
   Serial.print(F("#zm ")); Serial.println(zonaMorta, 3);
   Serial.print(F("#zs ")); Serial.println(atritoEstatico, 3);
   Serial.print(F("#zr ")); Serial.println(rampaPartida, 3);
@@ -235,6 +259,16 @@ void executa(char *c) {
         if (leFloats(c + 2, v, 2) == 2 && v[1] > 0) {
           plantaK = v[0]; plantaTau = v[1]; calculaModeloDiscreto(); zeraEstados();
         }
+      } else if (c[1] == 'c') {
+        uint8_t n = leFloats(c + 2, v, 4);
+        // exige a ordem ponta < meio < ponta (ou o contrário) para não dividir por zero
+        if (n >= 3 && ((v[0] < v[1] && v[1] < v[2]) || (v[0] > v[1] && v[1] > v[2]))) {
+          potA0 = v[0]; potMeio = v[1]; potA1 = v[2];
+          if (n == 4 && v[3] >= 0 && v[3] < 0.5f) potZona = v[3];
+        }
+      } else if (c[1] == 'a') {
+        Serial.print(F("#pa ")); Serial.println(lePotBruto(), 1);
+        return;
       } else fonteRef = REF_POT;
       break;
     case 'r': if (leFloats(c + 1, v, 1) == 1) { refFixa = v[0]; fonteRef = REF_FIXA; } break;

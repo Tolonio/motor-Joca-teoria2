@@ -140,8 +140,8 @@ section.geral { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(-
   <li><b>Porta errada no painel:</b> neste notebook a <code>/dev/ttyACM0</code> é um receptor GPS. A placa é a porta descrita como <b>USB CDC-Serial</b> (ttyACM1 ou ttyACM2). O painel agora escolhe essa porta sozinho, e o botão ↻ atualiza a lista se a placa reconectar com outro nome.</li></ul></div>
 <div class="qa"><p class="q">O que é esse potenciômetro? Por que o motor gira para os dois lados?</p><p>É o botão giratório da bancada: um resistor com um contato deslizante, ligado entre 0 V e 5 V, com o cursor no pino A6. A placa lê de 0 a 4095 e converte para <b>−1…+1, com o zero no meio do curso</b>. Depois multiplica pela faixa do modo (±12 V, ±350 rad/s ou ±π rad).</p>
   <p>O <b>sinal define o sentido</b>: valor positivo aciona o pino D10 da ponte H, valor negativo aciona o D9, e a corrente no motor se inverte. Por isso, de um lado do meio o motor gira num sentido e do outro lado inverte.</p></div>
-<div class="qa"><p class="q">Acho que o zero não está exatamente no meio do potenciômetro. Precisa calibrar?</p><p>Sim. Nos testes, o lado <b>negativo</b> chega perto do fim da faixa (−3,1 de −3,14 rad), mas o <b>positivo</b> para em cerca da <b>metade</b> (+1,55 rad, e +190 de +350 rad/s). Numa das pontas, o cursor não chega a 0 V. Por isso o meio físico do potenciômetro fica em torno de −25 % da faixa, e não em zero.</p>
-  <p>A correção é calibrar: medir o valor real das duas pontas (no m0, girando até o fim e lendo <code>ref</code>) e mapear essa faixa para −1…+1, com uma pequena zona neutra no centro.</p></div>
+<div class="qa"><p class="q">Acho que o zero não está exatamente no meio do potenciômetro. Precisa calibrar?</p><p>Sim, e a calibração já foi feita. Com o potenciômetro parado em cada posição, a leitura (0 a 4095) foi <b>0</b> numa ponta, <b>4064</b> na outra e <b>≈ 2535 no meio físico</b>. As pontas chegam praticamente ao fim da faixa, mas o meio lê 2535 e não ~2032. Sem calibrar, o meio dava <b>−2,85 V</b> no m0, um deslocamento de cerca de 12 % do curso.</p>
+  <p>O firmware agora mapeia o potenciômetro em <b>três pontos</b> (pontas e meio físico): leitura 0→2535 vira +1→0 e 2535→4064 vira 0→−1, com uma zona neutra de 3 % em volta do meio. Depois de gravar, com o potenciômetro no meio a referência ficou exatamente 0. Para recalibrar sem recompilar: <code>pa</code> mostra a leitura bruta e <code>pc 0,2535,4064,0.03</code> define pontas, meio e zona neutra.</p></div>
 <div class="qa"><p class="q">Tem como ver as saídas no terminal? Onde eu digito os comandos?</p><ol><li>No terminal do VS Code, na pasta do projeto: <code>python3 interface/painel.py</code>.</li>
   <li>Clique em <b>Conectar</b>. Cada linha que chega da placa aparece nesse terminal (50 por segundo).</li>
   <li>Os comandos (<code>m1</code>, <code>p</code>, <code>z</code>, <code>?</code>…) vão no campo <b>Comando:</b>, embaixo na janela do painel, e são enviados com Enter. A placa confirma com <code>#ok …</code>.</li></ol>
@@ -297,7 +297,7 @@ section.geral { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(-
 <div class="qa"><p class="q">Seguindo o potenciômetro: o que devo observar?</p><figure><img src="figuras/painel_m3_potenciometro.png" alt="Painel no m3 seguindo o potenciômetro" loading="lazy"><figcaption>m3 com o potenciômetro girado de ponta a ponta.</figcaption></figure>
   <ul><li>ω segue a referência com ~0,1 s de atraso, e u acompanha (−9 V a −324 rad/s, +6 V a +190 rad/s).</li>
   <li>θ desce sem parar: o eixo acumula voltas (−2 078 rad ≈ 330 voltas).</li>
-  <li>O lado positivo só chega a +190 rad/s: é o potenciômetro (veja "Perguntas gerais").</li></ul></div>
+  <li>O lado positivo só chega a +190 rad/s porque neste registro o potenciômetro não foi girado até o fim nesse sentido.</li></ul></div>
   </div>
 </section>
 
@@ -334,7 +334,7 @@ section.geral { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(-
   <p>Num print, a tela mostrava ref = −1,833, θ = −1,767, erro = −0,066 e u = 0. Estava certo: o erro estava dentro da tolerância de 0,1 rad e o controle desligou o motor.</p></div>
 <div class="qa"><p class="q">Está certo esse −2 a 2? Por que fica tão baixo?</p><figure><img src="figuras/painel_m4_potenciometro.png" alt="Painel no m4 seguindo o potenciômetro" loading="lazy"><figcaption>m4 com o potenciômetro girado de ponta a ponta.</figcaption></figure>
   <p>O controle está certo: θ (azul) segue a referência em degraus (stick-slip). u só aparece em rajadas de ±5 V enquanto o potenciômetro se move e volta a 0 quando o erro fica abaixo de 0,1 rad (no fim: ref 1,548, θ 1,620, erro −0,072).</p>
-  <p>A faixa é que está errada: deveria ir de <b>−3,14 a +3,14</b>, mas vai de −3,1 a só <b>+1,55</b>. O lado positivo do potenciômetro não chega ao fim, e isso se resolve com a calibração (veja "Perguntas gerais").</p></div>
+  <p>A faixa do print vai de −3,1 a +1,55 rad, e não de −3,14 a +3,14. Na hora parecia que o lado positivo não chegava ao fim, mas uma medição depois mostrou que as duas pontas chegam: naquele teste o potenciômetro só não foi girado até o fim. O que estava de fato deslocado era o <b>zero</b>, já corrigido com a calibração (veja "Perguntas gerais").</p></div>
   </div>
 </section>
 

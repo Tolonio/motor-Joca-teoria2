@@ -27,7 +27,7 @@ ganho **pela serial, sem recompilar**, usando o painel gráfico (`interface/pain
 1. [Resumo dos modos](#resumo-dos-modos) · [Como ler o terminal](#como-ler-a-telemetria-terminal) · [Ts = 20 ms](#o-período-de-amostragem-ts--20-ms)
 2. [**Perguntas que surgiram nos primeiros testes**](#perguntas-que-surgiram-nos-primeiros-testes)
 3. Modos: [m0](#m0-malha-aberta) · [m1](#m1-velocidade-lgr-pi) · [m2](#m2-posição-lgr-avanço) · [m3](#m3-velocidade-espaço-de-estados) · [m4](#m4-posição-espaço-de-estados) (cada um termina com as perguntas daquele modo)
-4. [Seguindo o potenciômetro ao vivo](#seguindo-o-potenciômetro-ao-vivo-o-que-observar) · [Conclusão](#conclusão-o-que-comparar-no-relatório) · [Como reproduzir](#como-reproduzir)
+4. [Seguindo o potenciômetro ao vivo](#seguindo-o-potenciômetro-ao-vivo-o-que-observar) · [Calibração do potenciômetro](#calibração-do-potenciômetro) · [Conclusão](#conclusão-o-que-comparar-no-relatório) · [Como reproduzir](#como-reproduzir)
 5. Versão interativa, com gráficos em que dá para ler os valores: <https://tolonio.github.io/motor-Joca-teoria2/docs/modos.html>
 
 **Projeto**
@@ -75,7 +75,8 @@ interpretação.
 ### Como o potenciômetro vira referência
 
 O potenciômetro é um divisor de tensão ligado em 0 V e 5 V, com o cursor no pino A6. A placa lê
-0…4095 e converte para **−1…+1, com o zero no meio do curso**. Depois multiplica pela faixa do
+0…4095 e converte para **−1…+1, com o zero no meio do curso** (com calibração em três pontos,
+ver [Calibração do potenciômetro](#calibração-do-potenciômetro)). Depois multiplica pela faixa do
 modo (±12 V, ±350 rad/s ou ±π rad). O **sinal define o sentido de giro**: positivo aciona o pino
 D10 da ponte H, negativo aciona o D9, e a corrente no motor se inverte. Por isso o motor gira para
 um lado de um lado do meio e para o outro lado do outro.
@@ -191,14 +192,23 @@ sentido e do outro lado inverte.
 
 #### "Acho que o zero não está exatamente no meio do potenciômetro. Precisa calibrar?"
 
-Sim. Nos testes, o lado **negativo** chega perto do fim da faixa (−3,1 de −3,14 rad), mas o
-**positivo** para em cerca da **metade** (+1,55 rad, e +190 de +350 rad/s). Numa das pontas o
-cursor não chega a 0 V, então o meio físico do potenciômetro fica em torno de −25 % da faixa.
-Detalhes em [Observação: o lado positivo do potenciômetro…](#observação-o-lado-positivo-do-potenciômetro-não-chega-ao-fim-da-faixa).
+Sim, e a calibração já foi feita. Medindo a leitura do potenciômetro (0 a 4095) com ele parado em
+cada posição:
 
-**Interpretação:** o código assume que o potenciômetro vai de 0 V a 5 V. A correção é calibrar:
-medir o valor real das duas pontas (no m0, girando até o fim e lendo `ref` no painel) e mapear essa
-faixa para −1…+1, com uma pequena zona neutra no centro.
+| Posição | Leitura | Referência no m0, sem calibrar |
+|---|---|---|
+| uma ponta | 0 | +12,00 V |
+| meio físico | ≈ 2535 | **−2,85 V** |
+| outra ponta | 4064 | −11,82 V |
+
+As duas pontas chegam praticamente ao fim da faixa, mas **o meio físico lê 2535, e não ~2032**.
+O código antigo supunha que o meio do curso fosse o meio da faixa, então o zero ficava deslocado
+cerca de 12 % do curso.
+
+**Interpretação e correção:** o firmware agora mapeia o potenciômetro em **três pontos** (as duas
+pontas e o meio físico), com uma zona neutra de 3 % em volta do meio. Com o potenciômetro no meio,
+a referência passou a ser exatamente 0. Detalhes e como recalibrar em
+[Calibração do potenciômetro](#calibração-do-potenciômetro).
 
 #### "Tem como ver as saídas no terminal? Onde eu digito os comandos?"
 
@@ -496,9 +506,11 @@ O controle está certo: θ (azul) segue a referência em degraus (stick-slip), u
 rajadas de ±5 V enquanto o potenciômetro se move, e volta a 0 quando o erro fica abaixo de
 0,1 rad (no fim: ref 1,548, θ 1,620, erro −0,072).
 
-A **faixa** é que está errada: deveria ir de −3,14 a +3,14 rad, mas vai de −3,1 a só **+1,55**. O
-lado positivo do potenciômetro não chega ao fim. Veja a pergunta sobre calibração em
-[Perguntas que surgiram nos primeiros testes](#perguntas-que-surgiram-nos-primeiros-testes).
+A **faixa** do print vai de −3,1 a +1,55 rad, e não de −3,14 a +3,14. Na hora parecia que o lado
+positivo do potenciômetro não chegava ao fim, mas uma medição depois mostrou que as duas pontas
+chegam: naquele teste o potenciômetro só não foi girado até o fim no sentido positivo. O que estava
+de fato deslocado era o **zero**, que já foi corrigido com a
+[calibração do potenciômetro](#calibração-do-potenciômetro).
 
 ---
 
@@ -519,8 +531,8 @@ vindo do **potenciômetro**, girado à mão de uma ponta à outra.
   e o motor fica desligado. Na linha de baixo: ref = 1,548, θ = 1,620, erro = −0,072 rad (4°),
   u = 0. Está dentro da tolerância, então o comportamento está correto.
 * **ω (3º gráfico) só tem picos curtos**, de ±40 rad/s: são os trancos.
-* **A faixa vai de −3,1 a +1,55 rad, e não de −π a +π.** Veja a observação sobre o potenciômetro
-  logo abaixo.
+* **A faixa vai de −3,1 a +1,55 rad, e não de −π a +π**, porque neste registro o potenciômetro não
+  foi girado até o fim no sentido positivo (veja a [calibração](#calibração-do-potenciômetro)).
 
 ### m3: velocidade seguindo o potenciômetro
 
@@ -537,21 +549,38 @@ vindo do **potenciômetro**, girado à mão de uma ponta à outra.
   ao passar de um modo de velocidade para um de posição.
 * Erro na linha de baixo: 0,43 rad/s em 324 rad/s (0,1 %).
 
-### Observação: o lado positivo do potenciômetro não chega ao fim da faixa
+### Calibração do potenciômetro
 
-Nos dois registros, o lado **negativo** chega perto do máximo (−3,1 de −3,14 rad, e −323 de
-−350 rad/s). Já o **positivo** para em cerca da **metade** (+1,55 de +3,14 rad, e +190 de
-+350 rad/s). Isso indica que, na ponta "positiva", o cursor do potenciômetro não chega a 0 V
-(lê ~1 000 em vez de 0, na escala de 0 a 4095). Consequências:
+Medição feita em 2026-11-26, girando o potenciômetro até cada ponta e parando no meio físico
+(dados lidos no m0):
 
-* o **meio físico** do potenciômetro não corresponde à referência zero (fica em torno de −25 % da
-  faixa), e é por isso que "o zero não está no meio";
-* no m2/m4 só dá para pedir até ~+π/2 rad no sentido positivo; no m1/m3, até ~+175 rad/s.
+| Posição | Leitura (0…4095) | Antes da calibração (m0) | Depois |
+|---|---|---|---|
+| uma ponta | 0 | +12,00 V | +12 V |
+| meio físico | ≈ 2535 | −2,85 V | **0 V** |
+| outra ponta | 4064 | −11,82 V | −12 V |
 
-O código não está errado: ele assume que o potenciômetro vai de 0 V a 5 V. A correção é
-**calibrar** as duas pontas (ler o valor real em cada uma e mapear essa faixa para −1…+1), mais
-uma pequena zona neutra no centro. Para medir, use o **m0**, gire até cada ponta e anote o valor de
-`ref` no painel.
+As pontas chegam praticamente ao fim da faixa. O problema era o **meio**: ele lê 2535 em vez de
+~2032, porque o potenciômetro não é perfeitamente linear ou porque o meio físico do curso não
+coincide com o meio elétrico. O firmware agora faz o mapeamento em **dois trechos**:
+
+```
+leitura de 0 até 2535     →  +1 … 0
+leitura de 2535 até 4064  →   0 … −1
+|valor| ≤ 0,03            →   0   (zona neutra: o meio vale exatamente zero)
+```
+
+Fora da zona neutra o valor é reescalado para não haver salto. Verificação depois de gravar: com o
+potenciômetro no meio, a leitura bruta foi 2540 e a referência ficou em 0,0 em todas as amostras.
+
+**Para recalibrar** (outra bancada, ou se o potenciômetro for trocado), sem recompilar:
+
+1. No painel, mande `pa` com o potenciômetro em uma ponta, no meio e na outra ponta. A placa
+   responde `#pa <leitura>` em cada posição.
+2. Mande `pc <ponta>,<meio>,<outra ponta>,<zona>`, por exemplo `pc 0,2535,4064,0.03`. Também dá
+   para usar o campo "Calibração potenciômetro" do painel.
+3. `?` mostra a calibração atual (`#pc`). Para ela valer depois de reiniciar a placa, troque os
+   valores padrão (`potA0`, `potMeio`, `potA1`, `potZona`) em `src/main.cpp`.
 
 ---
 
@@ -721,6 +750,8 @@ Uma linha por comando, terminada em Enter (o painel faz isso por você).
 | `zm V` / `zs V` | compensação de atrito girando / parado |
 | `zr V/s` | rampa de partida: com o motor preso, a compensação sobe zr V/s (até 7 V); 0 desliga |
 | `bp rad` | banda morta do erro de posição |
+| `pc a0,meio,a1,zona` | calibração do potenciômetro: leituras numa ponta, no meio físico e na outra ponta, e zona neutra ([detalhes](#calibração-do-potenciômetro)) |
+| `pa` | mostra a leitura bruta do potenciômetro (0…4095), para calibrar |
 | `?` | imprime todos os parâmetros |
 
 Telemetria (50 Hz): `t_ms,modo,referencia,u,velocidade,posicao`.

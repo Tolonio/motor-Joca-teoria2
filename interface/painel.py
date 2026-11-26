@@ -59,6 +59,7 @@ PARAMS = [
     ("zm", "Compensação atrito girando (V)", "0 desliga"),
     ("zs", "Compensação atrito parado (V)", "0 = usa zm"),
     ("bp", "Banda morta de posição (rad)", "0 desliga"),
+    ("pc", "Calibração potenciômetro a0,meio,a1,zona", "pa = leitura bruta"),
 ]
 
 
