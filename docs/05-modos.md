@@ -16,8 +16,7 @@ ensaios em [`dados/`](../dados). Em todas:
 > **Versão interativa com perguntas e respostas:** [modos.html](modos.html) tem este mesmo conteúdo
 > com gráficos em que dá para ler os valores com o mouse, mais as perguntas que surgiram usando a
 > bancada ("nada muda quando giro o potenciômetro", "por que ω varia tanto", "por que o m4 mal
-> responde"...), cada uma no modo correspondente. Abra o arquivo no navegador (o GitHub mostra só o
-> código HTML).
+> responde"...), cada uma no modo correspondente. **Abra online:** <https://tolonio.github.io/motor-Joca-teoria2/docs/modos.html>
 
 ## Resumo
 

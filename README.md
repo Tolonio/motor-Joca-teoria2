@@ -31,7 +31,7 @@ ganho **pela serial, sem recompilar**, usando o painel gráfico (`interface/pain
      (simulação) e como ela fica na bancada, com exemplos da saída do terminal
    - [docs/modos.html](docs/modos.html): a mesma explicação em página interativa (gráficos com os
      valores ao passar o mouse) e **as perguntas que surgiram nos testes, respondidas em cada modo**.
-     O GitHub mostra só o código do HTML: abra o arquivo no navegador depois de clonar/baixar o repositório.
+     **Abra online:** <https://tolonio.github.io/motor-Joca-teoria2/docs/modos.html>
 
 ---
 
