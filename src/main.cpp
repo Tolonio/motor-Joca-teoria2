@@ -40,6 +40,7 @@
  *   pl K,tau            modelo da planta (usado pelo observador)
  *   zm <V>              compensação de zona morta (V), 0 = desliga
  *   zs <V>              compensação de atrito estático (usada com o motor parado)
+ *   zr <V/s>            rampa de partida: com o motor preso, zs sobe zr V/s (até 7 V)
  *   bp <rad>            banda morta do erro de posição (m2/m4), 0 = desliga
  *   ?                   imprime todos os parâmetros
  */
@@ -91,6 +92,9 @@ bool  observadorLigado = false;   // ver docs: atrito estático atrapalha o obse
 
 float zonaMorta = 3.0f;   // V somados a |u| para vencer o atrito seco
 float atritoEstatico = 4.0f;  // V usados no lugar de zm quando o motor está parado (0 = igual a zm)
+float rampaPartida = 0.0f;    // V/s: quanto a tensão de partida sobe enquanto o motor segue preso
+const float ZS_MAX = 7.0f;    // limite da rampa de partida
+uint16_t nParado = 0;         // amostras seguidas com o motor preso
 float bandaPos = 0.10f;    // |erro| (rad) abaixo do qual o controle de posição desliga
 
 // ======================= Estado =======================
@@ -194,6 +198,7 @@ void imprimeParametros() {
   Serial.print(F("#pl ")); Serial.print(plantaK, 4); Serial.print(','); Serial.println(plantaTau, 5);
   Serial.print(F("#zm ")); Serial.println(zonaMorta, 3);
   Serial.print(F("#zs ")); Serial.println(atritoEstatico, 3);
+  Serial.print(F("#zr ")); Serial.println(rampaPartida, 3);
   Serial.print(F("#bp ")); Serial.println(bandaPos, 4);
 }
 
@@ -245,6 +250,7 @@ void executa(char *c) {
       break;
     case 'z':
       if (c[1] == 's') { if (leFloats(c + 2, v, 1) == 1) atritoEstatico = v[0]; break; }
+      if (c[1] == 'r') { if (leFloats(c + 2, v, 1) == 1) rampaPartida = v[0]; break; }
       if (c[1] == 'm') { if (leFloats(c + 2, v, 1) == 1) zonaMorta = v[0]; break; }
       noInterrupts(); contagem = 0; interrupts();
       contagemAnterior = 0; th = 0; zeraEstados();
@@ -354,10 +360,21 @@ void passoControle() {
   // pois a compensação existe justamente para cancelar o atrito.
   float vLin = v;
 
-  // Compensação de atrito (opcional): soma uma tensão fixa no sentido de u.
-  //   parado (w == 0) -> zs (atrito estático, maior)    girando -> zm (Coulomb)
+  // Compensação de atrito (opcional): soma uma tensão no sentido de u.
+  //   girando        -> zm (atrito dinâmico/Coulomb)
+  //   parado         -> zs + zr * (tempo parado), até ZS_MAX: rampa de partida.
+  //   O atrito estático desta bancada varia de 2,4 V a 5,7 V conforme o ponto,
+  //   então em vez de um valor fixo a tensão sobe até o motor se mexer.
   if (modo != M_ABERTA) {
-    float comp = (w == 0 && atritoEstatico > zonaMorta) ? atritoEstatico : zonaMorta;
+    float comp = zonaMorta;
+    bool preso = (w == 0 && fabs(v) > 0.05f);
+    if (preso && atritoEstatico > zonaMorta) {
+      comp = atritoEstatico + rampaPartida * TS * nParado;
+      if (comp > ZS_MAX) comp = ZS_MAX;
+      nParado++;
+    } else {
+      nParado = 0;
+    }
     if (comp > 0) {
       if (v > 0.05f) v = satura(v + comp);
       else if (v < -0.05f) v = satura(v - comp);
